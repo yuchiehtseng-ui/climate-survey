@@ -1456,31 +1456,27 @@ async function submitQuestionnaire() {
   const scores = calculateScores();
   const timestamp = new Date().toLocaleString('zh-TW');
 
-  // 送資料到 Google Sheets
+  // 送資料到 Google Sheets（用 GET 避免 CORS preflight）
   try {
-    const submitRes = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'submit',
-        inviteCode: currentInviteCode,
-        ...answers,
-        contact_title: answers.contact_title || '',
-        contact_phone: answers.contact_phone || '',
-        contact_email: answers.contact_email || '',
-        pressureNational: scores.pressureNational,
-        pressureSupply: scores.pressureSupply,
-        governance: scores.governance,
-        strategy: scores.strategy,
-        targets: scores.targets,
-        process: scores.process,
-        renewable: scores.renewable,
-        circular: scores.circular,
-        timestamp
-      })
-    });
-    const submitData = await submitRes.json();
-    if (!submitData.success) console.warn('提交失敗:', submitData.message);
+    const payload = {
+      action: 'submit',
+      inviteCode: currentInviteCode,
+      ...answers,
+      contact_title: answers.contact_title || '',
+      contact_phone: answers.contact_phone || '',
+      contact_email: answers.contact_email || '',
+      pressureNational: scores.pressureNational,
+      pressureSupply: scores.pressureSupply,
+      governance: scores.governance,
+      strategy: scores.strategy,
+      targets: scores.targets,
+      process: scores.process,
+      renewable: scores.renewable,
+      circular: scores.circular,
+      timestamp
+    };
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    await fetch(`${APPS_SCRIPT_URL}?data=${encoded}`);
   } catch(e) { console.warn('資料儲存失敗', e); }
 
   // 取得真實落點資料
