@@ -659,7 +659,8 @@ const SECTIONS = [
 ];
 
 // answers storage
-let answers = {};
+window.answers = {};
+let answers = window.answers;
 let currentSection = 0;
 let totalAnswered = 0;
 
@@ -1438,10 +1439,9 @@ async function submitQuestionnaire() {
 
   // 送資料到 Google Sheets
   try {
-    await fetch(APPS_SCRIPT_URL, {
+    const submitRes = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         action: 'submit',
         inviteCode: currentInviteCode,
@@ -1460,6 +1460,8 @@ async function submitQuestionnaire() {
         timestamp
       })
     });
+    const submitData = await submitRes.json();
+    if (!submitData.success) console.warn('提交失敗:', submitData.message);
   } catch(e) { console.warn('資料儲存失敗', e); }
 
   // 取得真實落點資料
