@@ -1456,9 +1456,9 @@ async function submitQuestionnaire() {
   const scores = calculateScores();
   const timestamp = new Date().toLocaleString('zh-TW');
 
-  // 送資料到 Google Sheets（用 sendBeacon 避免 CORS 問題）
+  // 送資料到 Google Sheets
   try {
-    const payload = {
+    const payload = JSON.stringify({
       action: 'submit',
       inviteCode: currentInviteCode,
       ...answers,
@@ -1474,14 +1474,21 @@ async function submitQuestionnaire() {
       renewable: scores.renewable,
       circular: scores.circular,
       timestamp
-    };
-    const blob = new Blob([JSON.stringify(payload)], { type: 'text/plain' });
-    const sent = navigator.sendBeacon(APPS_SCRIPT_URL, blob);
-    if (!sent) {
-      // sendBeacon 失敗時備援用 GET
-      const encoded = encodeURIComponent(JSON.stringify(payload));
-      await fetch(`${APPS_SCRIPT_URL}?data=${encoded}`);
+    });
+
+    // 方法1：sendBeacon（最佳）
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(APPS_SCRIPT_URL, new Blob([payload], {type: 'text/plain'}));
+    } else {
+      // 方法2：no-cors POST（備援）
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: payload
+      });
     }
+    // 等待 Apps Script 處理
+    await new Promise(r => setTimeout(r, 2000));
   } catch(e) { console.warn('資料儲存失敗', e); }
 
   // 取得真實落點資料
