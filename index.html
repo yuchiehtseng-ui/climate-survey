@@ -5,7 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>企業氣候韌性評估 | 中華氣候高峰論壇</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js">
+// ── Event delegation for answer inputs ──
+document.addEventListener('input', function(e) {
+  const el = e.target;
+  const key = el.getAttribute('data-answer-key');
+  if (key) {
+    window.answers[key] = el.value;
+    answers[key] = el.value;
+  }
+  if (el.getAttribute('data-validate-email')) {
+    validateEmail(el);
+  }
+  if (el.getAttribute('data-check-duplicate')) {
+    window.answers[key] = el.value;
+    answers[key] = el.value;
+    checkDuplicate(el.value);
+  }
+});
+
+</script>
 <style>
   :root {
     --primary: #1a1a1a;
@@ -792,7 +811,7 @@ function qBlock(num, text, hint, inputHtml, required = true) {
 
 function radioOpts(name, options) {
   return options.map(o => `
-    <div class="option-item" onclick="selectRadio('${name}','${escQ(o)}',this)">
+    <div class="option-item">
       <input type="radio" name="${name}" value="${escQ(o)}" id="${name}_${escQ(o)}">
       <label>${o}</label>
     </div>`).join('');
@@ -800,7 +819,7 @@ function radioOpts(name, options) {
 
 function checkOpts(name, options) {
   return options.map(o => `
-    <div class="option-item" onclick="toggleCheck('${name}','${escQ(o)}',this)">
+    <div class="option-item">
       <input type="checkbox" name="${name}" value="${escQ(o)}">
       <label>${o}</label>
     </div>`).join('');
@@ -809,7 +828,7 @@ function checkOpts(name, options) {
 function escQ(s) { return s.replace(/'/g, "&#39;").replace(/"/g, '&quot;'); }
 
 function textInput(name, placeholder = '') {
-  return `<div class="text-input-wrap"><input type="text" class="text-input" name="${name}" placeholder="${placeholder}" oninput="answers['${name}']=this.value"></div>`;
+  return `<div class="text-input-wrap"><input type="text" class="text-input" name="${name}" placeholder="${placeholder}" data-answer-key="${name}"></div>`;
 }
 
 function toggleHint(id) {
@@ -853,8 +872,8 @@ function renderBasic() {
     <div class="question-block" data-required="true">
       <div class="question-label"><span class="question-num">1</span><span class="question-text">企業基本資料 <span style="color:var(--warning);font-size:12px">*必填</span></span></div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;margin-left:36px">
-        <input type="text" class="text-input" name="company" placeholder="企業名稱" oninput="answers[&quot;company&quot;]=this.value">
-        <input type="text" class="text-input" name="taxid" placeholder="統一編號" maxlength="8" oninput="answers[&quot;taxid&quot;]=this.value;checkDuplicate(this.value)">
+        <input type="text" class="text-input" name="company" placeholder="企業名稱" data-answer-key="company">
+        <input type="text" class="text-input" name="taxid" placeholder="統一編號" maxlength="8" data-answer-key="taxid">
         <div id="duplicateNotice" style="display:none;font-size:13px;color:#c0622a;background:#fff8f0;border:1px solid #f0c090;border-radius:6px;padding:10px 14px;margin-top:6px;line-height:1.6">
           ⚠️ 提醒：貴公司已完成問卷填寫，本次重新填答後將更新並覆蓋前次資料，繼續填寫即表示同意。
         </div>
@@ -864,17 +883,17 @@ function renderBasic() {
     <div class="question-block" style="margin-top:24px">
       <div class="question-label"><span class="question-num">2</span><span class="question-text">聯絡人資訊</span></div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;margin-left:36px">
-        <input type="text" class="text-input" name="contact_name" placeholder="姓名 *" oninput="answers[&quot;contact_name&quot;]=this.value">
-        <input type="text" class="text-input" name="contact_title" placeholder="職稱" oninput="answers[&quot;contact_title&quot;]=this.value">
-        <input type="tel" class="text-input" name="contact_phone" placeholder="電話" oninput="answers[&quot;contact_phone&quot;]=this.value">
-        <input type="email" class="text-input" name="contact_email" id="emailInput" placeholder="E-mail（需包含 @）" oninput="validateEmail(this)">
+        <input type="text" class="text-input" name="contact_name" placeholder="姓名 *" data-answer-key="contact_name">
+        <input type="text" class="text-input" name="contact_title" placeholder="職稱" data-answer-key="contact_title">
+        <input type="tel" class="text-input" name="contact_phone" placeholder="電話" data-answer-key="contact_phone">
+        <input type="email" class="text-input" name="contact_email" id="emailInput" placeholder="E-mail（需包含 @）" data-validate-email="true">
         <div id="emailError" style="display:none;font-size:12px;color:var(--warning);margin-top:-4px">請輸入有效的 E-mail 格式（需包含 @）</div>
       </div>
     </div>
 
     ${qBlock(3, '請勾選 貴公司主要產品類別？（可複選）', null,
       checkOpts('A1', ['汽車品牌／整車製造','汽車零組件製造與供應','機車品牌／整車製造','機車零組件製造與供應','自行車品牌／整車製造','自行車零組件製造與供應']) +
-      `<div class="option-item"><input type="checkbox" name="A1" value="other_cb"><label>其他：</label><input type="text" class="text-input" style="margin-left:8px;flex:1" name="A1_other" placeholder="請填寫" oninput="answers[&quot;A1_other&quot;]=this.value"></div>`
+      `<div class="option-item"><input type="checkbox" name="A1" value="other_cb"><label>其他：</label><input type="text" class="text-input" style="margin-left:8px;flex:1" name="A1_other" placeholder="請填寫" data-answer-key="A1_other"></div>`
     )}
 
     ${qBlock(4, '請問 貴公司在供應鏈中的角色為？（單選）', null,
@@ -897,7 +916,7 @@ function renderPressure() {
     )}
     ${qBlock(4, '請問 貴公司的客戶／母廠曾提出哪些要求？（複選）', null,
       checkOpts('C1', ['參加教育訓練（如碳盤查、碳足跡、科學減量目標等）','提供碳排數據（包含碳盤查/足跡、廠內用能數據）','關切工廠未來減碳計畫（如產品製程改善、使用再生能源、工廠能效提升等）','制定減量目標（如科學減量目標 SBT）','定期回報進度／填寫問卷（如永續問卷、CDP）','要求使用再生能源','以上皆無']) +
-      `<div class="option-item"><input type="checkbox" name="C1" value="other_cb"><label>其他：</label><input type="text" class="text-input" style="margin-left:8px;flex:1" name="C1_other" placeholder="請填寫" oninput="answers[&quot;C1_other&quot;]=this.value"></div>`
+      `<div class="option-item"><input type="checkbox" name="C1" value="other_cb"><label>其他：</label><input type="text" class="text-input" style="margin-left:8px;flex:1" name="C1_other" placeholder="請填寫" data-answer-key="C1_other"></div>`
     )}
     ${qBlock(5, '請問 貴公司多少比例產品外銷歐盟市場且需要申報「碳關稅」數據？',
       '碳邊境調整機制（CBAM）：歐盟對進口特定產品徵收的碳關稅。<br>納管產品查詢：<a href="https://www.greentrade.org.tw/CBAM/search" target="_blank" style="color:var(--primary-light)">https://www.greentrade.org.tw/CBAM/search</a>',
@@ -923,7 +942,7 @@ function renderMgmt1() {
     ${qBlock(10,'請問 貴公司是否已參與以下國內外<strong>氣候相關組織或倡議</strong>？（複選）',
       '<strong>RE100</strong>：國際倡議，企業承諾100%使用再生能源<br><strong>TRE100</strong>：國際 RE100 的台灣版子倡議，依循其技術規範，並放寬年用電量 1 億度門檻<br><strong>SBTi</strong>：科學基礎減量目標倡議，依科學方法設定企業減碳目標',
       checkOpts('D5',['RE100 / TRE100','SBTi','協力體系淨零聯盟（如自行車永續聯盟）','車輛公會淨零工作小組','否','不清楚']) +
-      `<div class="option-item"><input type="checkbox" name="D5" value="other_cb"><label>其他：</label><input type="text" class="text-input" style="margin-left:8px;flex:1" name="D5_other" placeholder="請填寫" oninput="answers[&quot;D5_other&quot;]=this.value"></div>`
+      `<div class="option-item"><input type="checkbox" name="D5" value="other_cb"><label>其他：</label><input type="text" class="text-input" style="margin-left:8px;flex:1" name="D5_other" placeholder="請填寫" data-answer-key="D5_other"></div>`
     )}
     ${qBlock(11,'請問 貴公司是否已揭露<strong>範疇1及範疇2</strong>的溫室氣體排放數據？',
       '<strong>範疇1</strong>：公司直接排放，如鍋爐、車輛、製程燃燒<br><strong>範疇2</strong>：外購電力產生的間接排放<br><strong>揭露</strong>：指公開發布於永續報告書、官網，或回報給客戶／主管機關',
@@ -1028,7 +1047,7 @@ function renderNeeds() {
     <div class="question-block" style="margin-top:8px">
       <div class="question-label"><span class="question-num">38</span><span class="question-text">若您願意，請簡要說明最需要協助的原因或應用場景。（選填）</span></div>
       <div class="text-input-wrap" style="margin-top:8px">
-        <textarea class="text-input" name="F2" rows="3" placeholder="請簡述..." oninput="answers[&quot;F2&quot;]=this.value" style="resize:vertical"></textarea>
+        <textarea class="text-input" name="F2" rows="3" placeholder="請簡述..." style="resize:vertical" data-answer-key="F2"></textarea>
       </div>
     </div>
   `;
@@ -1751,6 +1770,38 @@ function toggleAdvice(i) {
   tog.classList.toggle('open', isOpen);
 }
 
+// ── Event delegation for all input/textarea changes ──
+document.addEventListener('input', function(e) {
+  const el = e.target;
+  const name = el.getAttribute('name');
+  if (!name) return;
+  if (typeof answers === 'undefined') return;
+  answers[name] = el.value;
+
+  // Special handlers
+  if (name === 'taxid') checkDuplicate(el.value);
+  if (name === 'contact_email') validateEmail(el);
+});
+
+// ── Event delegation for option-item clicks ──
+document.addEventListener('click', function(e) {
+  const optionItem = e.target.closest('.option-item');
+  if (!optionItem) return;
+
+  const radio = optionItem.querySelector('input[type="radio"]');
+  const checkbox = optionItem.querySelector('input[type="checkbox"]');
+
+  if (radio) {
+    const name = radio.getAttribute('name');
+    const value = radio.getAttribute('value');
+    if (name && value) selectRadio(name, value, optionItem);
+  } else if (checkbox) {
+    const name = checkbox.getAttribute('name');
+    const value = checkbox.getAttribute('value');
+    if (name && value && value !== 'other_cb') toggleCheck(name, value, optionItem);
+  }
+});
+
 // 暴露給 HTML onclick 使用的函數
 window.toggleConsent = toggleConsent;
 window.startQuestionnaire = startQuestionnaire;
@@ -1764,6 +1815,25 @@ window.validateEmail = validateEmail;
 window.checkDuplicate = checkDuplicate;
 
 }); // end window.onload
+
+// ── Event delegation for answer inputs ──
+document.addEventListener('input', function(e) {
+  const el = e.target;
+  const key = el.getAttribute('data-answer-key');
+  if (key) {
+    window.answers[key] = el.value;
+    answers[key] = el.value;
+  }
+  if (el.getAttribute('data-validate-email')) {
+    validateEmail(el);
+  }
+  if (el.getAttribute('data-check-duplicate')) {
+    window.answers[key] = el.value;
+    answers[key] = el.value;
+    checkDuplicate(el.value);
+  }
+});
+
 </script>
 </body>
 </html>
