@@ -823,38 +823,6 @@ async function checkDuplicate(taxid) {
     } catch(e) { notice.style.display = 'none'; }
   }, 800);
 }
-  const status = document.getElementById('taxidStatus');
-  if (!status) return;
-  if (taxid.length !== 8 || !/^\d{8}$/.test(taxid)) {
-    status.innerHTML = '';
-    return;
-  }
-  status.innerHTML = '<span style="color:var(--text-muted)">查詢中...</span>';
-  clearTimeout(lookupTimer);
-  lookupTimer = setTimeout(async () => {
-    try {
-      const res = await fetch(`https://data.gcis.nat.gov.tw/od/data/api/236EE382-4942-41A9-BD03-CA0709025E7C?$format=json&$filter=Business_Accounting_NO eq ${taxid}&$top=1`);
-      const data = await res.json();
-      if (data && data.length > 0) {
-        const name = data[0].Company_Name || data[0].Business_Name || '';
-        if (name) {
-          const companyInput = document.getElementById('companyInput');
-          if (companyInput && !companyInput.value) {
-            companyInput.value = name;
-            answers['company'] = name;
-          }
-          status.innerHTML = '<span style="color:var(--success)">✓ 查詢成功</span>';
-        } else {
-          status.innerHTML = '<span style="color:var(--text-muted)">未找到</span>';
-        }
-      } else {
-        status.innerHTML = '<span style="color:var(--text-muted)">未找到</span>';
-      }
-    } catch(e) {
-      status.innerHTML = '<span style="color:var(--text-muted)">查詢失敗</span>';
-    }
-  }, 800);
-}
 
 // ─── Email validation ───
 function validateEmail(input) {
