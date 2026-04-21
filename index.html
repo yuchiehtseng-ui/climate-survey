@@ -797,7 +797,7 @@ function checkOpts(name, options) {
     </div>`).join('');
 }
 
-function escQ(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+function escQ(s) { return s.replace(/'/g, "&#39;").replace(/"/g, '&quot;'); }
 
 function textInput(name, placeholder = '') {
   return `<div class="text-input-wrap"><input type="text" class="text-input" name="${name}" placeholder="${placeholder}" oninput="answers['${name}']=this.value"></div>`;
