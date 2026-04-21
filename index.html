@@ -1260,6 +1260,10 @@ function validateSection() {
       answers['company'] = company.value.trim();
       answers['taxid'] = taxid.value.trim();
       answers['contact_name'] = cname.value.trim();
+      const title = document.querySelector('input[name="contact_title"]');
+      const phone = document.querySelector('input[name="contact_phone"]');
+      if (title) answers['contact_title'] = title.value.trim();
+      if (phone) answers['contact_phone'] = phone.value.trim();
       if (email) answers['contact_email'] = email.value.trim();
     }
   }
@@ -1442,6 +1446,9 @@ async function submitQuestionnaire() {
         action: 'submit',
         inviteCode: currentInviteCode,
         ...answers,
+        contact_title: answers.contact_title || '',
+        contact_phone: answers.contact_phone || '',
+        contact_email: answers.contact_email || '',
         pressureNational: scores.pressureNational,
         pressureSupply: scores.pressureSupply,
         governance: scores.governance,
