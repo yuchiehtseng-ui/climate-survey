@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>企業氣候韌性評估 | 中華氣候高峰論壇</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --primary: #1a1a1a;
+    --primary-light: #444444;
+    --accent: #FFBF23;
+    --accent-light: #f6d84c;
+    --accent-dark: #d49e00;
+    --accent-bg: #fffbee;
+    --text: #1a1a1a;
+    --text-muted: #666666;
+    --border: #e2e2e2;
+    --bg: #ffffff;
+    --bg-soft: #f8f8f8;
+    --bg-card: #ffffff;
+    --hint-bg: #fffdf0;
+    --hint-border: #FFBF23;
+    --success: #2a6640;
+    --warning: #c0392b;
+    --radius: 6px;
+    --shadow: 0 1px 6px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg-soft);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    background: #1a1a1a;
+    border-bottom: 3px solid var(--accent);
+    padding: 14px 36px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .site-header .logo-text {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    opacity: 0.8;
+  }
+  .site-header .logo-main {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .site-header .divider { width: 1px; height: 18px; background: rgba(255,255,255,0.25); }
+
+  /* ── Progress bar (sticky bottom) ── */
+  .progress-wrap {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-top: 1px solid var(--border);
+    padding: 10px 36px 12px;
+    z-index: 100;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+  }
+  .progress-bar-outer {
+    background: #e2e6ed;
+    border-radius: 99px;
+    height: 3px;
+    overflow: hidden;
+  }
+  .progress-bar-inner {
+    background: var(--accent);
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    color: var(--text-muted);
+    font-size: 11px;
+    margin-top: 5px;
+    text-align: right;
+  }
+
+  /* ── Main layout ── */
+  .main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 32px 20px 120px;
+  }
+
+  /* ── Cards / Screens ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    padding: 36px 40px;
+    margin-bottom: 20px;
+  }
+
+  /* ── Typography ── */
+  .page-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1.4;
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+  }
+  .page-subtitle {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 24px;
+    letter-spacing: 0.03em;
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    border-left: 3px solid var(--accent);
+    padding-left: 10px;
+    margin: 32px 0 16px;
+    letter-spacing: 0.03em;
+    text-transform: none;
+  }
+  .section-title:first-of-type { margin-top: 0; }
+
+  /* ── Question ── */
+  .question-block {
+    margin-bottom: 32px;
+  }
+  .question-label {
+    font-weight: 500;
+    color: var(--text);
+    font-size: 15px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .question-num {
+    background: var(--accent);
+    color: #1a1a1a;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    min-width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .question-text { flex: 1; }
+
+  /* ── Hint box ── */
+  .hint-box {
+    background: var(--hint-bg);
+    border-left: 3px solid var(--hint-border);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #2c2c2c;
+    margin: 8px 0 12px 36px;
+    line-height: 1.8;
+  }
+  .hint-box p { margin-bottom: 4px; }
+  .hint-box p:last-child { margin-bottom: 0; }
+  .question-text strong { color: #F98400; font-weight: 700; }
+  .hint-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--primary-light);
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 4px 0 8px 36px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .hint-toggle:hover { color: var(--primary); }
+
+  /* ── Options ── */
+  .options-grid { display: flex; flex-direction: column; gap: 8px; margin-left: 36px; }
+  .option-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: #fff;
+  }
+  .option-item:hover { border-color: var(--accent); background: var(--hint-bg); }
+  .option-item.selected { border-color: var(--accent); background: #fdf8ee; }
+  .option-item input { margin-top: 2px; flex-shrink: 0; accent-color: var(--accent-dark); }
+  .option-item label { cursor: pointer; font-size: 14px; line-height: 1.5; }
+
+  /* ── Text input ── */
+  .text-input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    transition: border-color 0.15s;
+    margin-left: 0;
+  }
+  .text-input:focus { outline: none; border-color: var(--primary-light); }
+  .text-input-wrap { margin-left: 36px; }
+
+  /* Sub-fields for targets */
+  .sub-fields {
+    display: none;
+    margin: 10px 0 0 36px;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    padding: 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .sub-fields.visible { display: flex; }
+  .sub-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 120px; }
+  .sub-field label { font-size: 12px; color: var(--text-muted); }
+  .sub-field input {
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .sub-field input:focus { outline: none; border-color: var(--primary-light); }
+
+  /* ── Invite code screen ── */
+  .invite-wrap {
+    text-align: center;
+    padding: 20px 0;
+  }
+  .invite-icon { font-size: 48px; margin-bottom: 16px; }
+  .invite-input-wrap { display: flex; gap: 10px; max-width: 340px; margin: 0 auto; }
+  .invite-input {
+    flex: 1;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-family: inherit;
+    text-align: center;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .invite-input:focus { outline: none; border-color: var(--primary); }
+  .invite-error {
+    color: var(--warning);
+    font-size: 13px;
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #1a1a1a;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary:hover { background: var(--accent-light); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+  }
+  .btn-secondary:hover { background: var(--bg-soft); }
+  .btn-accent { background: var(--accent); color: #1a1a1a; font-weight: 700; }
+  .btn-accent:hover { background: var(--accent-light); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Privacy screen ── */
+  .privacy-box {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    max-height: 320px;
+    overflow-y: auto;
+    margin: 20px 0;
+  }
+  .privacy-box h4 { color: var(--text); font-size: 14px; margin-bottom: 8px; }
+  .privacy-box ul { padding-left: 20px; margin: 8px 0; }
+  .privacy-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .privacy-consent.checked { border-color: var(--accent); background: var(--hint-bg); }
+  .privacy-consent input { margin-top: 2px; accent-color: var(--accent-dark); }
+  .privacy-consent label { font-size: 14px; font-weight: 500; cursor: pointer; }
+
+  /* ── Result screen ── */
+  .result-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 28px 40px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    margin: -36px -40px 28px;
+    border-bottom: 4px solid var(--accent);
+  }
+  .result-company { font-size: 13px; opacity: 0.75; margin-bottom: 4px; }
+  .result-title { font-family: 'Noto Sans TC', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: 0.01em; }
+  .result-date { font-size: 12px; opacity: 0.6; margin-top: 6px; }
+
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .score-card {
+    background: var(--bg-soft);
+    border-radius: 8px;
+    padding: 14px 16px;
+    border-left: 4px solid var(--primary-light);
+  }
+  .score-card.pressure { border-left-color: var(--warning); }
+  .score-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+  .score-value { font-size: 24px; font-weight: 700; color: var(--primary); }
+  .score-card.pressure .score-value { color: var(--warning); }
+  .score-bar-wrap { margin-top: 6px; background: #e0e0e0; border-radius: 99px; height: 4px; }
+  .score-bar { height: 4px; border-radius: 99px; background: var(--primary-light); transition: width 1s ease; }
+  .score-card.pressure .score-bar { background: var(--warning); }
+
+  .radar-wrap {
+    position: relative;
+    max-width: 420px;
+    margin: 0 auto 28px;
+  }
+
+  .industry-notice {
+    background: #fff8e1;
+    border: 1px solid #f0c040;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #7a5c00;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .advice-section { margin-top: 28px; }
+  .advice-item {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .advice-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg-soft);
+    cursor: pointer;
+    gap: 12px;
+  }
+  .advice-header-left { display: flex; align-items: center; gap: 10px; }
+  .advice-dim { font-weight: 600; font-size: 14px; color: var(--primary); }
+  .advice-score-badge {
+    background: var(--primary);
+    color: #fff;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+  }
+  .advice-score-badge.low { background: var(--warning); }
+  .advice-score-badge.mid { background: #e8930a; }
+  .advice-score-badge.high { background: var(--success); }
+  .advice-body {
+    padding: 14px 16px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text-muted);
+    display: none;
+  }
+  .advice-body.open { display: block; }
+  .advice-toggle { font-size: 18px; color: var(--text-muted); transition: transform 0.2s; }
+  .advice-toggle.open { transform: rotate(180deg); }
+
+  /* ── Validation ── */
+  .error-msg {
+    color: var(--warning);
+    font-size: 12px;
+    margin-top: 6px;
+    margin-left: 36px;
+    display: none;
+  }
+  .question-block.has-error .error-msg { display: block; }
+  .question-block.has-error .option-item { border-color: #f0a090; }
+
+  /* ── Intro bullets ── */
+  .intro-bullets { margin: 16px 0; }
+  .intro-bullet {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--bg-soft);
+  }
+  .intro-bullet:last-child { border-bottom: none; }
+  .intro-bullet-icon { color: var(--primary); font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .card { padding: 24px 20px; }
+    .result-header { padding: 24px 20px; margin: -24px -20px 24px; }
+    .score-grid { grid-template-columns: 1fr; }
+    .btn-row { flex-direction: column-reverse; gap: 10px; }
+    .btn { width: 100%; justify-content: center; }
+    .invite-input-wrap { flex-direction: column; }
+  }
+
+  /* ── Fade in ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .screen.active .card { animation: fadeUp 0.3s ease; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="site-header" style="border-bottom: 3px solid var(--accent)">
+  <span class="logo-main">中華氣候高峰論壇</span>
+  <div class="divider"></div>
+  <span class="logo-text">企業氣候韌性評估</span>
+</div>
+
+<!-- Progress -->
+<div class="progress-wrap" id="progressWrap" style="display:none">
+  <div class="progress-bar-outer">
+    <div class="progress-bar-inner" id="progressBar" style="width:0%"></div>
+  </div>
+  <div class="progress-label" id="progressLabel">0 / 39</div>
+</div>
+
+<div class="main">
+
+  <!-- ══ SCREEN 0: Invite Code ══ -->
+  <div class="screen active" id="screen-invite">
+    <div class="card">
+      <div class="invite-wrap">
+        <div style="width:56px;height:4px;background:var(--accent);border-radius:2px;margin:0 auto 28px"></div>
+        <div class="page-title" style="font-size:26px;margin-bottom:24px">企業氣候韌性評估</div>
+        <p style="font-size:13px;color:var(--text-muted);max-width:380px;margin:0 auto 16px">
+          本問卷採邀請制，請輸入邀請碼進入填答頁面。
+        </p>
+        <div class="invite-input-wrap">
+          <input type="text" class="invite-input" id="inviteInput" placeholder="請輸入邀請碼" maxlength="20">
+          <button class="btn btn-primary" id="inviteBtn" style="white-space:nowrap;min-width:72px;justify-content:center">進入</button>
+        </div>
+        <div class="invite-error" id="inviteError">邀請碼不正確，請確認後再試。</div>
+        <p style="font-size:12px;color:var(--text-muted);max-width:380px;margin:20px auto 0">
+          開發者｜財團法人中華經濟研究院
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 1: Intro + Privacy ══ -->
+  <div class="screen" id="screen-intro">
+    <div class="card">
+      <div class="page-title" style="font-size:18px;margin-bottom:16px">您好，歡迎使用企業氣候韌性診斷工具</div>
+
+      <p style="font-size:15px;color:var(--text);line-height:1.8;margin-bottom:16px">
+        氣候變遷帶來的法規壓力、供應鏈要求與能源成本波動，已成為企業營運的現實課題。這份評估將協助 貴公司快速盤點目前的應對現況，找出可著力的方向。
+      </p>
+      <p style="font-size:15px;color:var(--text);line-height:1.8;margin-bottom:24px">
+        填答完成後，系統將立即產出一份 貴公司專屬的「<strong>企業氣候韌性評估報告</strong>」，供內部參考使用。個別評估結果遵循個資規範，請安心填答。
+      </p>
+
+      <div class="intro-bullets">
+        <div class="intro-bullet"><span class="intro-bullet-icon">📋</span><span>調查共分四部分：基本資料、外部壓力、管理制度、實質因應行動</span></div>
+        <div class="intro-bullet"><span class="intro-bullet-icon">👤</span><span>推薦填答者：總經理、廠長、管理部／行政主管、ESG 或環安衛負責人</span></div>
+        <div class="intro-bullet"><span class="intro-bullet-icon">✅</span><span>依目前所知如實填答即可，若不確定公司現況，可直接選「不清楚」</span></div>
+        <div class="intro-bullet"><span class="intro-bullet-icon">⏱</span><span>預計填答時間：<strong>5–10 分鐘</strong></span></div>
+      </div>
+
+      <div class="section-title" style="margin-top:28px">個人資料蒐集告知暨同意</div>
+      <div class="privacy-box">
+        <h4>告知事項</h4>
+        <p>為遵守個人資料保護法規定，並保障當事人之權利，謹依法告知下列事項：</p>
+        <ul>
+          <li>機關名稱：財團法人中華經濟研究院（以下簡稱本單位）。</li>
+          <li>蒐集目的：協助企業進行氣候韌性診斷，並調查產業企業氣候壓力與回應現況。</li>
+          <li>個人資料之類別：姓名、職稱、E-mail、電話等。</li>
+          <li>個人資料利用期間、地區、對象及方式：
+            <ul>
+              <li>期間：自個人資料蒐集日起3年內。</li>
+              <li>對象：本單位將於原蒐集之特定目的、本次以外之產業推廣、宣導、輔導、教育訓練、商機媒合，以及其他公務機關請求與本單位創設目的相關之行政協助目的範圍內，合理利用您的個人資料。</li>
+              <li>方式：以電子、書面、電話、電信、網際網路及其他方式於蒐集之特定目的範圍內處理並利用個人資料。</li>
+            </ul>
+          </li>
+          <li>本單位依規定使用您的個人資料，不另做其他用途。</li>
+        </ul>
+        <br>
+        <p>依個人資料保護法第3條規定，當事人可行使以下權利，若有相關需求，請與訪視單位連絡電話連繫：查詢或請求閱覽、請求製給複製本、請求補充或更正、請求停止蒐集、處理及利用、請求刪除。</p>
+        <br>
+        <p>依個人資料保護法第14條規定，查詢或請求閱覽個人資料或製給複製本者，本單位得酌收必要成本費用。</p>
+        <p>若未提供正確個人資料，本單位將無法提供您特定目的範圍內之相關服務。</p>
+      </div>
+
+      <div class="privacy-consent" id="privacyConsent" onclick="toggleConsent()">
+        <input type="checkbox" id="consentCheck">
+        <label for="consentCheck">本人已充分知悉貴單位上述告知事項，並同意貴單位辦理「企業氣候韌性診斷」蒐集、處理、利用本人之個人資料</label>
+      </div>
+
+      <div class="btn-row">
+        <div></div>
+        <button class="btn btn-primary" onclick="startQuestionnaire()" id="startBtn" disabled>
+          開始填答 →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 2: Questionnaire ══ -->
+  <div class="screen" id="screen-questionnaire">
+    <div class="card" id="questionnaireCard">
+      <!-- Dynamically rendered -->
+    </div>
+    <div class="btn-row" style="background:var(--bg-card);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow)">
+      <button class="btn btn-secondary" id="prevBtn" onclick="prevSection()" style="display:none">← 上一步</button>
+      <div></div>
+      <button class="btn btn-primary" id="nextBtn" onclick="nextSection()">下一步 →</button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 3: Result ══ -->
+  <div class="screen" id="screen-result">
+    <div class="card">
+      <div class="result-header">
+        <div class="result-company" id="resultCompany">—</div>
+        <div class="result-title">企業氣候韌性評估報告</div>
+        <div class="result-date" id="resultDate">—</div>
+      </div>
+
+      <div class="section-title">外部壓力指數</div>
+      <div class="score-grid" id="pressureGrid"></div>
+
+      <div class="section-title">氣候因應準備度</div>
+      <div class="radar-wrap">
+        <canvas id="radarChart"></canvas>
+      </div>
+      <div class="industry-notice" id="industryNotice" style="display:none"></div>
+
+      <div class="section-title">各構面分析建議</div>
+      <div class="advice-section" id="adviceSection"></div>
+
+      <div class="section-title" style="margin-top:36px">整體落點分析</div>
+      <div style="max-width:480px;margin:0 auto 8px">
+        <canvas id="matrixChart"></canvas>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:28px" id="matrixLegend"></div>
+
+      <div class="btn-row" style="border-top:none;margin-top:24px;padding-top:0">
+        <div></div>
+        <button class="btn btn-secondary" onclick="window.print()">🖨 列印報告</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+window.addEventListener('load', function() {
+
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrIG6bxB7EaNAL3LDFDIvcrodOMenEmkKyNU9lTfRbBKeCiDGnV5lDxwDDZb3ec2IG2g/exec';
+
+// Industry averages (from last year data)
+const INDUSTRY_AVG = {
+  governance: 0.369,
+  strategy: 0.299,
+  targets: 0.405,
+  process: 0.498,
+  renewable: 0.447,
+  circular: 0.477
+};
+const MIN_FOR_AVG = 30;
+
+// ═══════════════════════════════════════════
+// QUESTIONNAIRE DATA
+// ═══════════════════════════════════════════
+const SECTIONS = [
+  { id: 'basic', title: '第一部分：基本資料', part: 1 },
+  { id: 'pressure', title: '第二部分：外部壓力', part: 2 },
+  { id: 'mgmt1', title: '第三部分：管理制度（1/2）', part: 3 },
+  { id: 'mgmt2', title: '第三部分：管理制度（2/2）', part: 3 },
+  { id: 'action', title: '第四部分：實質因應行動', part: 4 },
+  { id: 'needs', title: '第五部分：資源需求', part: 5 },
+];
+
+// answers storage
+let answers = {};
+let currentSection = 0;
+let totalAnswered = 0;
+
+// ═══════════════════════════════════════════
+// INVITE
+// ═══════════════════════════════════════════
+// 儲存邀請碼供後續使用
+let currentInviteCode = '';
+
+window.checkInvite = async function() {
+  const val = document.getElementById('inviteInput').value.trim().toUpperCase();
+  if (!val) return;
+
+  const btn = document.querySelector('#screen-invite .btn-primary');
+  const errEl = document.getElementById('inviteError');
+  btn.textContent = '驗證中...';
+  btn.disabled = true;
+  errEl.style.display = 'none';
+
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=checkInvite&code=${encodeURIComponent(val)}`);
+    const data = await res.json();
+    if (data.success) {
+      currentInviteCode = val;
+      goScreen('screen-intro');
+    } else {
+      errEl.style.display = 'block';
+      errEl.textContent = '邀請碼不正確或已停用，請確認後再試。';
+    }
+  } catch(e) {
+    errEl.style.display = 'block';
+    errEl.textContent = '網路連線異常，請稍後再試。';
+  }
+
+  btn.textContent = '進入';
+  btn.disabled = false;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('inviteBtn').addEventListener('click', checkInvite);
+  document.getElementById('inviteInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkInvite();
+  });
+});
+
+// ═══════════════════════════════════════════
+// PRIVACY
+// ═══════════════════════════════════════════
+function toggleConsent() {
+  const cb = document.getElementById('consentCheck');
+  const wrap = document.getElementById('privacyConsent');
+  cb.checked = !cb.checked;
+  wrap.classList.toggle('checked', cb.checked);
+  document.getElementById('startBtn').disabled = !cb.checked;
+}
+
+function startQuestionnaire() {
+  goScreen('screen-questionnaire');
+  document.getElementById('progressWrap').style.display = 'block';
+  renderSection(0);
+}
+
+// ═══════════════════════════════════════════
+// SCREEN NAV
+// ═══════════════════════════════════════════
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════════
+// RENDER SECTIONS
+// ═══════════════════════════════════════════
+function renderSection(idx) {
+  currentSection = idx;
+  const card = document.getElementById('questionnaireCard');
+  const section = SECTIONS[idx];
+
+  document.getElementById('prevBtn').style.display = idx > 0 ? 'inline-flex' : 'none';
+  document.getElementById('nextBtn').textContent = idx === SECTIONS.length - 1 ? '提交問卷 ✓' : '下一步 →';
+
+  updateProgress();
+
+  let html = `<div class="section-title">${section.title}</div>`;
+
+  if (idx === 0) html += renderBasic();
+  else if (idx === 1) html += renderPressure();
+  else if (idx === 2) html += renderMgmt1();
+  else if (idx === 3) html += renderMgmt2();
+  else if (idx === 4) html += renderAction();
+  else if (idx === 5) html += renderNeeds();
+
+  card.innerHTML = html;
+  restoreAnswers(idx);
+  attachListeners();
+}
+
+function updateProgress() {
+  const pct = ((currentSection) / SECTIONS.length) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `第 ${currentSection + 1} / ${SECTIONS.length} 部分`;
+}
+
+// ─── Render helpers ───
+function qBlock(num, text, hint, inputHtml, required = true) {
+  const hintHtml = hint ? `
+    <div class="hint-box" style="display:block">${hint}</div>
+  ` : '';
+  return `
+    <div class="question-block" id="qblock${num}" data-q="${num}" data-required="${required}">
+      <div class="question-label">
+        <span class="question-num">${num}</span>
+        <span class="question-text">${text}</span>
+      </div>
+      ${hintHtml}
+      <div class="options-grid">${inputHtml}</div>
+      <div class="error-msg">此題為必填，請選擇一個選項。</div>
+    </div>`;
+}
+
+function radioOpts(name, options) {
+  return options.map(o => `
+    <div class="option-item" onclick="selectRadio('${name}','${escQ(o)}',this)">
+      <input type="radio" name="${name}" value="${escQ(o)}" id="${name}_${escQ(o)}">
+      <label>${o}</label>
+    </div>`).join('');
+}
+
+function checkOpts(name, options) {
+  return options.map(o => `
+    <div class="option-item" onclick="toggleCheck('${name}','${escQ(o)}',this)">
+      <input type="checkbox" name="${name}" value="${escQ(o)}">
+      <label>${o}</label>
+    </div>`).join('');
+}
+
+function escQ(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+function textInput(name, placeholder = '') {
+  return `<div class="text-input-wrap"><input type="text" class="text-input" name="${name}" placeholder="${placeholder}" oninput="answers['${name}']=this.value"></div>`;
+}
+
+function toggleHint(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ─── Duplicate check ───
+let dupTimer = null;
+async function checkDuplicate(taxid) {
+  const notice = document.getElementById('duplicateNotice');
+  if (!notice) return;
+  if (!taxid || taxid.length !== 8) { notice.style.display = 'none'; return; }
+  clearTimeout(dupTimer);
+  dupTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=checkDuplicate&taxid=${encodeURIComponent(taxid)}&inviteCode=${encodeURIComponent(currentInviteCode)}`);
+      const data = await res.json();
+      notice.style.display = data.isDuplicate ? 'block' : 'none';
+    } catch(e) { notice.style.display = 'none'; }
+  }, 800);
+}
+  const status = document.getElementById('taxidStatus');
+  if (!status) return;
+  if (taxid.length !== 8 || !/^\d{8}$/.test(taxid)) {
+    status.innerHTML = '';
+    return;
+  }
+  status.innerHTML = '<span style="color:var(--text-muted)">查詢中...</span>';
+  clearTimeout(lookupTimer);
+  lookupTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`https://data.gcis.nat.gov.tw/od/data/api/236EE382-4942-41A9-BD03-CA0709025E7C?$format=json&$filter=Business_Accounting_NO eq ${taxid}&$top=1`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const name = data[0].Company_Name || data[0].Business_Name || '';
+        if (name) {
+          const companyInput = document.getElementById('companyInput');
+          if (companyInput && !companyInput.value) {
+            companyInput.value = name;
+            answers['company'] = name;
+          }
+          status.innerHTML = '<span style="color:var(--success)">✓ 查詢成功</span>';
+        } else {
+          status.innerHTML = '<span style="color:var(--text-muted)">未找到</span>';
+        }
+      } else {
+        status.innerHTML = '<span style="color:var(--text-muted)">未找到</span>';
+      }
+    } catch(e) {
+      status.innerHTML = '<span style="color:var(--text-muted)">查詢失敗</span>';
+    }
+  }, 800);
+}
+
+// ─── Email validation ───
+function validateEmail(input) {
+  answers['contact_email'] = input.value;
+  const errEl = document.getElementById('emailError');
+  if (!errEl) return;
+  if (input.value && !input.value.includes('@')) {
+    errEl.style.display = 'block';
+    input.style.borderColor = 'var(--warning)';
+  } else {
+    errEl.style.display = 'none';
+    input.style.borderColor = '';
+  }
+}
+
+// ─── SECTION 0: Basic ───
+function renderBasic() {
+  return `
+    <div class="question-block" data-required="true">
+      <div class="question-label"><span class="question-num">1</span><span class="question-text">企業基本資料 <span style="color:var(--warning);font-size:12px">*必填</span></span></div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;margin-left:36px">
+        <input type="text" class="text-input" name="company" placeholder="企業名稱" oninput="answers['company']=this.value">
+        <input type="text" class="text-input" name="taxid" placeholder="統一編號" maxlength="8" oninput="answers['taxid']=this.value;checkDuplicate(this.value)">
+        <div id="duplicateNotice" style="display:none;font-size:13px;color:#c0622a;background:#fff8f0;border:1px solid #f0c090;border-radius:6px;padding:10px 14px;margin-top:6px;line-height:1.6">
+          ⚠️ 提醒：貴公司已完成問卷填寫，本次重新填答後將更新並覆蓋前次資料，繼續填寫即表示同意。
+        </div>
+      </div>
+    </div>
+
+    <div class="question-block" style="margin-top:24px">
+      <div class="question-label"><span class="question-num">2</span><span class="question-text">聯絡人資訊</span></div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;margin-left:36px">
+        <input type="text" class="text-input" name="contact_name" placeholder="姓名 *" oninput="answers['contact_name']=this.value">
+        <input type="text" class="text-input" name="contact_title" placeholder="職稱" oninput="answers['contact_title']=this.value">
+        <input type="tel" class="text-input" name="contact_phone" placeholder="電話" oninput="answers['contact_phone']=this.value">
+        <input type="email" class="text-input" name="contact_email" id="emailInput" placeholder="E-mail（需包含 @）" oninput="validateEmail(this)">
+        <div id="emailError" style="display:none;font-size:12px;color:var(--warning);margin-top:-4px">請輸入有效的 E-mail 格式（需包含 @）</div>
+      </div>
+    </div>
+
+    ${qBlock(3, '請勾選 貴公司主要產品類別？（可複選）', null,
+      checkOpts('A1', ['汽車品牌／整車製造','汽車零組件製造與供應','機車品牌／整車製造','機車零組件製造與供應','自行車品牌／整車製造','自行車零組件製造與供應']) +
+      `<div class="option-item"><input type="checkbox" name="A1" value="other_cb"><label>其他：</label><input type="text" class="text-input" style="margin-left:8px;flex:1" name="A1_other" placeholder="請填寫" oninput="answers['A1_other']=this.value"></div>`
+    )}
+
+    ${qBlock(4, '請問 貴公司在供應鏈中的角色為？（單選）', null,
+      radioOpts('A2', ['終端產品製造商','OEM Tier 1（供應終端產品製造）','OEM Tier 2（供應 Tier 1 廠商）','OES（原廠售後零件供應商）','AM 供應商（副廠售後零件供應商）'])
+    )}
+  `;
+}
+
+// ─── SECTION 1: Pressure ───
+function renderPressure() {
+  return `
+    ${qBlock(1, '請問 貴公司是否為金管會規範，須進行氣候資訊揭露（IFRS S2）的上市櫃公司？', null,
+      radioOpts('B1', ['2026年適用（資本額100億元以上）','2027年適用（資本額50–100億元）','2028年適用（其餘上市櫃公司）','以上皆非','不清楚'])
+    )}
+    ${qBlock(2, '請問 貴公司是否有工廠為環境部列管之碳排大戶？', null,
+      radioOpts('B2', ['第1、2階段：強制碳盤查登錄（工廠範疇1+2年排放＞2.5萬噸）','第3階段：強制碳盤查登錄（工廠範疇1+2年排放＞1萬噸）','以上皆非','不清楚'])
+    )}
+    ${qBlock(3, '請問 貴公司是否為能源署列管能源用戶名單？', null,
+      radioOpts('B3', ['是（用電契約達800kW以上）','否','不清楚'])
+    )}
+    ${qBlock(4, '請問 貴公司的客戶／母廠曾提出哪些要求？（複選）', null,
+      checkOpts('C1', ['參加教育訓練（如碳盤查、碳足跡、科學減量目標等）','提供碳排數據（包含碳盤查/足跡、廠內用能數據）','關切工廠未來減碳計畫（如產品製程改善、使用再生能源、工廠能效提升等）','制定減量目標（如科學減量目標 SBT）','定期回報進度／填寫問卷（如永續問卷、CDP）','要求使用再生能源','以上皆無']) +
+      `<div class="option-item"><input type="checkbox" name="C1" value="other_cb"><label>其他：</label><input type="text" class="text-input" style="margin-left:8px;flex:1" name="C1_other" placeholder="請填寫" oninput="answers['C1_other']=this.value"></div>`
+    )}
+    ${qBlock(5, '請問 貴公司多少比例產品外銷歐盟市場且需要申報「碳關稅」數據？',
+      '碳邊境調整機制（CBAM）：歐盟對進口特定產品徵收的碳關稅。<br>納管產品查詢：<a href="https://www.greentrade.org.tw/CBAM/search" target="_blank" style="color:var(--primary-light)">https://www.greentrade.org.tw/CBAM/search</a>',
+      radioOpts('C2', ['超過50%銷貨收入需申報','約20–50%銷貨收入需申報','低於20%銷貨收入需申報','有外銷歐盟，但尚無須申報','無外銷歐盟','不清楚'])
+    )}
+  `;
+}
+
+// ─── SECTION 2: Mgmt 1 (D1–D10) ───
+function renderMgmt1() {
+  const ynu = ['是','否','不清楚'];
+  return `
+    ${qBlock(6,'請問 貴公司是否感受到「碳」相關議題會<strong>實際影響公司營運或業務</strong>？',null,radioOpts('D1',ynu))}
+    ${qBlock(7,'請問 貴公司是否曾<strong>正式評估</strong>「碳」的議題對公司帶來的<strong>具體風險或商機</strong>？',
+      '<strong>正式評估是指有系統地盤點下列影響，並記錄結果或納入決策參考：</strong><br><strong>風險</strong>：碳費增加導致成本上升、客戶要求碳足跡數據否則取消訂單、極端氣候影響生產或物流<br><strong>商機</strong>：因具備碳管理能力而取得新訂單、節能投資降低能源成本、開發低碳產品進入新市場',
+      radioOpts('D2',ynu))}
+    ${qBlock(8,'請問 貴公司是否已<strong>訂定正式政策或承諾</strong>，因應「碳」相關議題？',
+      '例如：公司目標宣示、成立專責小組、參與產業倡議（如車輛公會淨零工作小組），不限形式與規模。',
+      radioOpts('D3',ynu))}
+    ${qBlock(9,'請問 貴公司是否<strong>投入資源</strong>，積極回應國內外碳管理相關政策或行業要求？',
+      '例如：聘用或指派專責人員、編列相關預算、導入碳盤查系統、委託顧問輔導等。',
+      radioOpts('D4',ynu))}
+    ${qBlock(10,'請問 貴公司是否已參與以下國內外<strong>氣候相關組織或倡議</strong>？（複選）',
+      '<strong>RE100</strong>：國際倡議，企業承諾100%使用再生能源<br><strong>TRE100</strong>：國際 RE100 的台灣版子倡議，依循其技術規範，並放寬年用電量 1 億度門檻<br><strong>SBTi</strong>：科學基礎減量目標倡議，依科學方法設定企業減碳目標',
+      checkOpts('D5',['RE100 / TRE100','SBTi','協力體系淨零聯盟（如自行車永續聯盟）','車輛公會淨零工作小組','否','不清楚']) +
+      `<div class="option-item"><input type="checkbox" name="D5" value="other_cb"><label>其他：</label><input type="text" class="text-input" style="margin-left:8px;flex:1" name="D5_other" placeholder="請填寫" oninput="answers['D5_other']=this.value"></div>`
+    )}
+    ${qBlock(11,'請問 貴公司是否已揭露<strong>範疇1及範疇2</strong>的溫室氣體排放數據？',
+      '<strong>範疇1</strong>：公司直接排放，如鍋爐、車輛、製程燃燒<br><strong>範疇2</strong>：外購電力產生的間接排放<br><strong>揭露</strong>：指公開發布於永續報告書、官網，或回報給客戶／主管機關',
+      radioOpts('D6',ynu))}
+    ${qBlock(12,'請問 貴公司是否曾取得範疇1及範疇2之<strong>第三方查證</strong>聲明書？',
+      '由獨立驗證機構（如 BSI、SGS、Bureau Veritas 等）審查碳盤查數據正確性並出具的正式聲明書。',
+      radioOpts('D7',ynu))}
+    ${qBlock(13,'請問 貴公司是否已計算與報告<strong>任何範疇3</strong>的溫室氣體排放數據？',
+      '<strong>範疇3</strong>：上下游供應鏈的間接排放，如原料採購、產品運輸、員工差旅、產品使用等',
+      radioOpts('D8',ynu))}
+    ${qBlock(14,'請問 貴公司是否已計算與報告<strong>有重大影響的範疇3排放細節</strong>？',
+      '<strong>重大影響</strong>：指對公司碳排放總量或業務風險影響較大的類別，需經過系統性評估後識別。',
+      radioOpts('D9',ynu))}
+    ${qBlock(15,'請問 貴公司是否已制定<strong>溫室氣體減量目標</strong>？',null,
+      radioOpts('D10',['是','否','不清楚'])
+    )}
+  `;
+}
+
+// ─── SECTION 3: Mgmt 2 (D11–D20) ───
+function renderMgmt2() {
+  const ynu = ['是','否','不清楚'];
+  const showTargets = answers['D10'] === '是';
+  const targetQuestions = showTargets ? `
+    ${qBlock(16,'請問 貴公司是否已制定<strong>短期</strong>溫室氣體<strong>減量目標</strong>？（2035年前）',null,`
+      ${radioOpts('D11',['是','否','不清楚'])}
+      <div class="sub-fields" id="subD11">
+        <div class="sub-field"><label>範疇</label><input type="text" name="D11_scope" placeholder="如：範疇1+2"></div>
+        <div class="sub-field"><label>基準年</label><input type="text" name="D11_base" placeholder="如：2022"></div>
+        <div class="sub-field"><label>目標年</label><input type="text" name="D11_target" placeholder="如：2030"></div>
+        <div class="sub-field"><label>減量幅度（%）</label><input type="text" name="D11_pct" placeholder="如：30"></div>
+      </div>
+    `)}
+    ${qBlock(17,'請問 貴公司是否已制定<strong>長期</strong>溫室氣體<strong>減量目標</strong>？（2050年前）',null,`
+      ${radioOpts('D12',['是','否','不清楚'])}
+      <div class="sub-fields" id="subD12">
+        <div class="sub-field"><label>範疇</label><input type="text" name="D12_scope" placeholder="如：範疇1+2+3"></div>
+        <div class="sub-field"><label>基準年</label><input type="text" name="D12_base" placeholder="如：2022"></div>
+        <div class="sub-field"><label>目標年</label><input type="text" name="D12_target" placeholder="如：2050"></div>
+        <div class="sub-field"><label>減量幅度（%）</label><input type="text" name="D12_pct" placeholder="如：100"></div>
+      </div>
+    `)}
+  ` : '';
+
+  return `
+    ${targetQuestions}
+    ${qBlock(18,'請問 貴公司是否已由<strong>高階主管</strong>（如董事長、總經理或指定主管）負責督導碳相關工作？',null,radioOpts('D13',ynu))}
+    ${qBlock(19,'請問 貴公司是否已將<strong>減碳績效</strong>納入高階主管的 KPI 或考核制度？',null,radioOpts('D14',ynu))}
+    ${qBlock(20,'請問 貴公司是否有一套固定的<strong>機制或流程</strong>，定期討論「碳」相關<strong>風險與因應措施</strong>？',
+      '<strong>氣候相關風險</strong>：碳費上漲、客戶要求碳足跡數據、極端氣候影響生產物流等<br><strong>氣候相關商機</strong>：取得新訂單、節能降費、開發低碳產品等',
+      radioOpts('D15',ynu))}
+    ${qBlock(21,'請問 貴公司是否將「碳排」相關<strong>風險與機會納入</strong>實際的<strong>經營決策</strong>？',
+      '例如：預算規劃時考量碳費成本、產品研發時評估低碳需求、採購時優先選擇低碳供應商等。',
+      radioOpts('D16',ynu))}
+    ${qBlock(22,'請問 貴公司是否曾為員工安排「碳排」相關的<strong>內部教育訓練</strong>或講座？',null,radioOpts('D17',ynu))}
+    ${qBlock(23,'請問 貴公司是否執行過<strong>氣候情境分析</strong>（climate scenario），並據此制定因應計畫？',
+      '<strong>氣候情境分析是指「如果未來氣候政策變嚴、或極端氣候變多，我的公司會怎樣？」的推演練習。</strong><br><strong>政策情境</strong>：碳費大幅提高，公司成本和訂單會受到什麼影響？<br><strong>實體情境</strong>：極端高溫、洪水或缺水，公司生產或物流會受到什麼衝擊？',
+      radioOpts('D18',ynu))}
+    ${qBlock(24,'請問 貴公司目前是否使用任何形式的<strong>內部碳定價</strong>，主動為公司碳排訂一個價格，用來評估決策或管理排放？',
+      '<strong>隱含價格</strong>：為每噸碳設定心理價格，用於篩選值得的減碳措施<br><strong>影子價格</strong>：把假設性的碳價納入 IRR 或回收年限，重新評估投資整體效益<br><strong>內部碳費</strong>：各部門依實際碳排放量向內部基金繳納碳費，用於支持減碳專案',
+      radioOpts('D19',['隱含價格','影子價格','內部碳費','以上皆無','不清楚']))}
+    ${qBlock(25,'請問 貴公司是否關注<strong>公協會或同業</strong>在「碳排」議題上的共識，並在必要時<strong>主動推動</strong>或回應？',
+      '例如：確認公協會的氣候政策與公司立場一致、在會議中提出減碳議題、或當公協會積極度不足時向其反映意見等。',
+      radioOpts('D20',ynu))}
+    ${qBlock(26,'請問 貴公司是否已進行任何<strong>實質的減碳投資或規劃</strong>？',
+      '例如：公用設備改善、燃料替代、再生能源自發自用、製程優化、使用再生料等',
+      radioOpts('E0',['是','否','不清楚']))}
+  `;
+}
+
+// ─── SECTION 4: Action ───
+function renderAction() {
+  const eOpts = ['大部分完成並持續精進','已規劃並執行中','評估規劃中','尚無規劃','不清楚'];
+  return `
+    ${qBlock(27,'<strong>公用設備節能</strong>的執行情形？','例如：空壓機、空調、照明等用電設備效率提升',radioOpts('E1_1',eOpts))}
+    ${qBlock(28,'<strong>燃燒設備燃料替代</strong>的執行情形？','例如：重油轉天然氣、導入生質燃料等',radioOpts('E1_2',eOpts))}
+    ${qBlock(29,'<strong>製程設備節能</strong>的執行情形？','例如：製程設備效率提升、智慧化改善等',radioOpts('E1_3',eOpts))}
+    ${qBlock(30,'<strong>逸散性減排</strong>的執行情形？','例如：冷媒逸散控制、製程氣體捕捉等',radioOpts('E1_4',eOpts))}
+    ${qBlock(31,'<strong>再生能源自發自用</strong>的執行情形？','例如：自建屋頂太陽能板等',radioOpts('E2_1',eOpts))}
+    ${qBlock(32,'<strong>投資儲能設施</strong>的執行情形？',null,radioOpts('E2_2',eOpts))}
+    ${qBlock(33,'<strong>綠電採購</strong>的執行情形？','例如：購買綠電憑證、簽署長期購電協議等',radioOpts('E2_3',eOpts))}
+    ${qBlock(34,'推動<strong>低碳產品／服務</strong>的執行情形？','例如：使用再生料、減少製程廢棄物、產品包材輕量化、研發電動或氫能運具等',radioOpts('E3_1',eOpts))}
+    ${qBlock(35,'<strong>進出貨物流優化</strong>的執行情形？','例如：選擇低碳排運輸工具、優化或縮短物流路線等',radioOpts('E3_2',eOpts))}
+    ${qBlock(36,'<strong>供應鏈減碳</strong>的執行情形？','例如：實施綠色採購、選擇低碳供應商、要求供應鏈減碳等',radioOpts('E3_3',eOpts))}
+  `;
+}
+
+// ─── SECTION 5: Needs ───
+function renderNeeds() {
+  return `
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px;line-height:1.7">
+      在推動碳管理轉型的過程中，不同公司可能面臨不同的挑戰與資源需求。為協助政府更精準配置未來的政策與輔導資源，我們希望了解 貴公司目前最需要的協助類型。
+    </p>
+    ${qBlock(37,'請問 貴公司目前最需要哪些資源或協助？（最多選3項）',null,`
+      <p style="font-size:13px;font-weight:600;color:var(--primary);margin:4px 0 6px">我不知道怎麼做</p>
+      ${checkOpts('F1',['不知道如何開始碳盤查或計算碳足跡','不清楚有哪些減碳方法適合我們產業','不知道如何設定合理的減碳目標'])}
+      <p style="font-size:13px;font-weight:600;color:var(--primary);margin:12px 0 6px">我知道要做但有困難</p>
+      ${checkOpts('F1',['缺乏專業人才執行碳管理工作','減碳投資成本太高，不知道值不值得','難以說服高層或取得內部資源'])}
+      <p style="font-size:13px;font-weight:600;color:var(--primary);margin:12px 0 6px">我想要更有效率</p>
+      ${checkOpts('F1',['希望用 AI 或數位工具自動化碳數據管理','希望了解同業怎麼做、有哪些成功案例','希望有政府補助或融資資源支持'])}
+    `,false)}
+    <div class="question-block" style="margin-top:8px">
+      <div class="question-label"><span class="question-num">38</span><span class="question-text">若您願意，請簡要說明最需要協助的原因或應用場景。（選填）</span></div>
+      <div class="text-input-wrap" style="margin-top:8px">
+        <textarea class="text-input" name="F2" rows="3" placeholder="請簡述..." oninput="answers['F2']=this.value" style="resize:vertical"></textarea>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════
+// INTERACTION
+// ═══════════════════════════════════════════
+function selectRadio(name, value, el) {
+  document.querySelectorAll(`.option-item input[name="${name}"]`).forEach(i => {
+    i.closest('.option-item').classList.remove('selected');
+  });
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+  answers[name] = value;
+
+  // D10（第15題）：選否/不清楚 → 自動幫D11、D12填相同答案
+  if (name === 'D10') {
+    const isNo = value === '否';
+    const isUnclear = value === '不清楚';
+    if (isNo || isUnclear) {
+      const fillVal = value;
+      answers['D11'] = fillVal;
+      answers['D12'] = fillVal;
+      ['D11','D12'].forEach(q => {
+        document.querySelectorAll(`.option-item input[name="${q}"]`).forEach(i => {
+          i.closest('.option-item').classList.remove('selected');
+          if (i.value === fillVal) {
+            i.checked = true;
+            i.closest('.option-item').classList.add('selected');
+          } else {
+            i.checked = false;
+          }
+        });
+        document.getElementById(`sub${q}`)?.classList.remove('visible');
+      });
+    } else {
+      if (answers['D11'] === '否' || answers['D11'] === '不清楚') answers['D11'] = null;
+      if (answers['D12'] === '否' || answers['D12'] === '不清楚') answers['D12'] = null;
+    }
+  }
+
+  // D11、D12（第16、17題）：兩題都選否 → 自動把D10改成否
+  if (name === 'D11' || name === 'D12') {
+    const d11 = name === 'D11' ? value : answers['D11'];
+    const d12 = name === 'D12' ? value : answers['D12'];
+    if (d11 === '否' && d12 === '否') {
+      answers['D10'] = '否';
+      document.querySelectorAll('.option-item input[name="D10"]').forEach(i => {
+        i.closest('.option-item').classList.remove('selected');
+        if (i.value === '否') {
+          i.checked = true;
+          i.closest('.option-item').classList.add('selected');
+        }
+      });
+    }
+  }
+
+  // Sub-fields for D11/D12
+  if (name === 'D11') {
+    document.getElementById('subD11')?.classList.toggle('visible', value === '是');
+  }
+  if (name === 'D12') {
+    document.getElementById('subD12')?.classList.toggle('visible', value === '是');
+  }
+
+  // Clear error
+  el.closest('.question-block')?.classList.remove('has-error');
+}
+
+function toggleCheck(name, value, el) {
+  const inp = el.querySelector('input[type="checkbox"]');
+  inp.checked = !inp.checked;
+  el.classList.toggle('selected', inp.checked);
+
+  if (!answers[name]) answers[name] = [];
+
+  if (inp.checked) {
+    // D5 互斥邏輯：選「否」清除其他；選其他清除「否」
+    if (name === 'D5') {
+      if (value === '否' || value === '不清楚') {
+        // 清除所有其他選項
+        document.querySelectorAll(`input[name="D5"]`).forEach(i => {
+          if (i.value !== value) {
+            i.checked = false;
+            i.closest('.option-item')?.classList.remove('selected');
+          }
+        });
+        answers['D5'] = [value];
+      } else {
+        // 清除「否」和「不清楚」
+        ['否','不清楚'].forEach(v => {
+          const i = document.querySelector(`input[name="D5"][value="${v}"]`);
+          if (i) { i.checked = false; i.closest('.option-item')?.classList.remove('selected'); }
+          answers['D5'] = (answers['D5'] || []).filter(x => x !== v);
+        });
+        if (!answers['D5'].includes(value)) answers['D5'].push(value);
+      }
+      return;
+    }
+
+    // C1 互斥邏輯：選「以上皆無」清除其他；選其他清除「以上皆無」
+    if (name === 'C1') {
+      if (value === '以上皆無') {
+        document.querySelectorAll(`input[name="C1"]`).forEach(i => {
+          if (i.value !== '以上皆無') {
+            i.checked = false;
+            i.closest('.option-item')?.classList.remove('selected');
+          }
+        });
+        answers['C1'] = ['以上皆無'];
+      } else {
+        const noneInp = document.querySelector(`input[name="C1"][value="以上皆無"]`);
+        if (noneInp) { noneInp.checked = false; noneInp.closest('.option-item')?.classList.remove('selected'); }
+        answers['C1'] = (answers['C1'] || []).filter(x => x !== '以上皆無');
+        if (!answers['C1'].includes(value)) answers['C1'].push(value);
+      }
+      return;
+    }
+
+    if (!answers[name].includes(value)) answers[name].push(value);
+    // Max 3 for F1
+    if (name === 'F1' && answers[name].length > 3) {
+      inp.checked = false;
+      el.classList.remove('selected');
+      answers[name] = answers[name].filter(v => v !== value);
+      alert('最多選擇3項');
+    }
+  } else {
+    answers[name] = answers[name].filter(v => v !== value);
+  }
+}
+
+function attachListeners() {
+  // Restore sub-field visibility
+  if (answers['D11'] === '是') document.getElementById('subD11')?.classList.add('visible');
+  if (answers['D12'] === '是') document.getElementById('subD12')?.classList.add('visible');
+}
+
+function restoreAnswers(idx) {
+  // Restore radio
+  Object.keys(answers).forEach(name => {
+    const val = answers[name];
+    if (typeof val === 'string') {
+      const inp = document.querySelector(`input[name="${name}"][value="${CSS.escape(val)}"]`);
+      if (inp) {
+        inp.checked = true;
+        inp.closest('.option-item')?.classList.add('selected');
+      }
+      const textInp = document.querySelector(`input[name="${name}"], textarea[name="${name}"]`);
+      if (textInp && (textInp.type === 'text' || textInp.tagName === 'TEXTAREA')) {
+        textInp.value = val;
+      }
+    }
+    if (Array.isArray(val)) {
+      val.forEach(v => {
+        const inp = document.querySelector(`input[name="${name}"][value="${CSS.escape(v)}"]`);
+        if (inp) {
+          inp.checked = true;
+          inp.closest('.option-item')?.classList.add('selected');
+        }
+      });
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════
+function nextSection() {
+  if (!validateSection()) return;
+
+  let next = currentSection + 1;
+
+  // 第26題（E0）選否或不清楚 → 跳過第四部分（action section index 4），直接到第五部分
+  if (next === 4 && (answers['E0'] === '否' || answers['E0'] === '不清楚')) {
+    next = 5;
+  }
+
+  if (next < SECTIONS.length) {
+    renderSection(next);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    submitQuestionnaire();
+  }
+}
+
+function prevSection() {
+  if (currentSection > 0) {
+    let prev = currentSection - 1;
+    // 從第五部分往回，若E0是否/不清楚，跳過第四部分
+    if (prev === 4 && (answers['E0'] === '否' || answers['E0'] === '不清楚')) {
+      prev = 3;
+    }
+    renderSection(prev);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function validateSection() {
+  let ok = true;
+  document.querySelectorAll('.question-block[data-required="true"]').forEach(block => {
+    const qName = block.dataset.q;
+    if (!qName) return;
+
+    // Check radio
+    const radios = block.querySelectorAll('input[type="radio"]');
+    if (radios.length > 0) {
+      const checked = block.querySelector('input[type="radio"]:checked');
+      if (!checked) {
+        block.classList.add('has-error');
+        ok = false;
+      }
+    }
+  });
+
+  // Validate basic fields
+  if (currentSection === 0) {
+    const company = document.querySelector('input[name="company"]');
+    const taxid = document.querySelector('input[name="taxid"]');
+    const cname = document.querySelector('input[name="contact_name"]');
+    const email = document.querySelector('input[name="contact_email"]');
+    if (!company?.value.trim() || !taxid?.value.trim() || !cname?.value.trim()) {
+      alert('請填寫企業名稱、統一編號及聯絡人姓名。');
+      ok = false;
+    } else if (email?.value && !email.value.includes('@')) {
+      alert('E-mail 格式不正確，請確認是否包含 @。');
+      ok = false;
+    } else {
+      answers['company'] = company.value.trim();
+      answers['taxid'] = taxid.value.trim();
+      answers['contact_name'] = cname.value.trim();
+      if (email) answers['contact_email'] = email.value.trim();
+    }
+  }
+
+  if (!ok) {
+    document.querySelector('.has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  return ok;
+}
+
+// ═══════════════════════════════════════════
+// SCORING
+// ═══════════════════════════════════════════
+function scoreYNU(val, weights) {
+  // weights: { yes, no, unclear }
+  if (val === '是') return weights.yes || 1;
+  if (val === '否') return weights.no || 0;
+  return weights.unclear || 0;
+}
+
+function scoreE(val) {
+  const map = { '大部分完成並持續精進': 5, '已規劃並執行中': 4, '評估規劃中': 3, '尚無規劃': 2, '不清楚': 0 };
+  return map[val] || 0;
+}
+
+function calculateScores() {
+  const a = answers;
+  const scores = {};
+
+  // ── Pressure: National Policy (B) ──
+  let bScore = 0;
+  if (a.B1 && a.B1 !== '以上皆非' && a.B1 !== '不清楚') bScore += 0.4;
+  if (a.B2 && a.B2 !== '以上皆非' && a.B2 !== '不清楚') bScore += 0.4;
+  if (a.B3 === '是（用電契約達800kW以上）') bScore += 0.2;
+  scores.pressureNational = Math.min(bScore, 1);
+
+  // ── Pressure: Supply Chain (C) ──
+  const c1 = a.C1 || [];
+  let cScore = 0;
+  if (c1.includes('參加教育訓練（如碳盤查、碳足跡、科學減量目標等）')) cScore += 1/18;
+  if (c1.includes('提供碳排數據（包含碳盤查/足跡、廠內用能數據）')) cScore += 1/18;
+  if (c1.includes('關切工廠未來減碳計畫（如產品製程改善、使用再生能源、工廠能效提升等）')) cScore += 2/18;
+  if (c1.includes('定期回報進度／填寫問卷（如永續問卷、CDP）')) cScore += 3/18;
+  if (c1.includes('制定減量目標（如科學減量目標 SBT）')) cScore += 3/18;
+  if (c1.includes('要求使用再生能源')) cScore += 4/18;
+  // CBAM
+  const cbam = a.C2 || '';
+  if (cbam.includes('超過50%')) cScore += 4/18;
+  else if (cbam.includes('20-50%') || cbam.includes('20–50%')) cScore += 3/18;
+  else if (cbam.includes('低於20%')) cScore += 2/18;
+  else if (cbam.includes('有外銷歐盟')) cScore += 1/18;
+  scores.pressureSupply = Math.min(cScore, 1);
+
+  // ── Governance (D1,D2,D3,D13,D5,D14,D20) ──
+  let gov = 0, govMax = 31;
+  gov += a.D1 === '是' ? 2 : 0;
+  gov += a.D2 === '是' ? 3 : 0;
+  gov += a.D3 === '是' ? 3 : 0;
+  gov += a.D13 === '是' ? 5 : 0;
+  const d5 = a.D5 || [];
+  if (d5.includes('RE100 / TRE100') || d5.includes('SBTi')) gov += 6;
+  else if (d5.length > 0 && !d5.includes('否') && !d5.includes('不清楚')) gov += 3;
+  gov += a.D14 === '是' ? 6 : 0;
+  gov += a.D20 === '是' ? 6 : 0;
+  scores.governance = gov / govMax;
+
+  // ── Strategy & Risk (D4,D15,D16,D17,D18,D19) ──
+  let sr = 0, srMax = 29;
+  sr += a.D17 === '是' ? 1 : 0;
+  sr += a.D4 === '是' ? 5 : 0;
+  sr += a.D15 === '是' ? 5 : 0;
+  sr += a.D16 === '是' ? 6 : 0;
+  sr += a.D18 === '是' ? 6 : 0;
+  if (a.D19 && a.D19 !== '以上皆無' && a.D19 !== '不清楚') sr += 6;
+  scores.strategy = sr / srMax;
+
+  // ── Targets (D6,D7,D8,D9,D10,D11,D12) ──
+  let mt = 0, mtMax = 34;
+  mt += a.D6 === '是' ? 4 : 0;
+  mt += a.D7 === '是' ? 5 : 0;
+  mt += a.D8 === '是' ? 5 : 0;
+  mt += a.D9 === '是' ? 5 : 0;
+  mt += a.D10 === '是' ? 4 : 0;
+  mt += a.D11 === '是' ? 5 : 0;
+  mt += a.D12 === '是' ? 6 : 0;
+  scores.targets = mt / mtMax;
+
+  // ── Process & Energy (E1_1~E1_4) ── max = 5*4 = 20
+  const eKeys1 = ['E1_1','E1_2','E1_3','E1_4'];
+  scores.process = eKeys1.reduce((s,k) => s + scoreE(a[k]), 0) / 20;
+
+  // ── Renewable (E2_1~E2_3) ── max = 5*3 = 15
+  const eKeys2 = ['E2_1','E2_2','E2_3'];
+  scores.renewable = eKeys2.reduce((s,k) => s + scoreE(a[k]), 0) / 15;
+
+  // ── Circular (E3_1~E3_3) ── max = 5*3 = 15
+  const eKeys3 = ['E3_1','E3_2','E3_3'];
+  scores.circular = eKeys3.reduce((s,k) => s + scoreE(a[k]), 0) / 15;
+
+  return scores;
+}
+
+// ═══════════════════════════════════════════
+// SUBMIT & RENDER RESULT
+// ═══════════════════════════════════════════
+async function submitQuestionnaire() {
+  const scores = calculateScores();
+  const timestamp = new Date().toLocaleString('zh-TW');
+
+  // 送資料到 Google Sheets
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'submit',
+        inviteCode: currentInviteCode,
+        ...answers,
+        pressureNational: scores.pressureNational,
+        pressureSupply: scores.pressureSupply,
+        governance: scores.governance,
+        strategy: scores.strategy,
+        targets: scores.targets,
+        process: scores.process,
+        renewable: scores.renewable,
+        circular: scores.circular,
+        timestamp
+      })
+    });
+  } catch(e) { console.warn('資料儲存失敗', e); }
+
+  // 取得真實落點資料
+  let otherDots = [];
+  let sampleCount = 1;
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getDots`);
+    const data = await res.json();
+    if (data.success) {
+      const totalPressure = Math.round((scores.pressureNational + scores.pressureSupply) / 2 * 100);
+      const totalReadiness = Math.round((scores.governance + scores.strategy + scores.targets + scores.process + scores.renewable + scores.circular) / 6 * 100);
+      // 排除自己的點（同統編）
+      otherDots = data.dots.filter(d =>
+        !(Math.abs(d.x - totalPressure) < 1 && Math.abs(d.y - totalReadiness) < 1)
+      );
+      sampleCount = data.count || 1;
+    }
+  } catch(e) { console.warn('落點資料讀取失敗', e); }
+
+  document.getElementById('progressWrap').style.display = 'none';
+  goScreen('screen-result');
+  renderResult(scores, timestamp, otherDots, sampleCount);
+}
+
+function renderResult(scores, timestamp, otherDots = [], sampleCount = 1) {
+  document.getElementById('resultCompany').textContent = answers.company || '—';
+  document.getElementById('resultDate').textContent = timestamp;
+
+  // Industry averages (from last year data)
+  const PRESSURE_AVG = { national: 0.0926, supply: 0.3014 };
+
+  // Pressure scores with comparison
+  const pg = document.getElementById('pressureGrid');
+  const pNat = Math.round(scores.pressureNational * 100);
+  const pSup = Math.round(scores.pressureSupply * 100);
+  const pNatAvg = Math.round(PRESSURE_AVG.national * 100);
+  const pSupAvg = Math.round(PRESSURE_AVG.supply * 100);
+  const pNatDiff = pNat - pNatAvg;
+  const pSupDiff = pSup - pSupAvg;
+
+  function diffText(diff, count) {
+    if (diff > 0) return `較同業高 <strong style="color:var(--warning)">${diff}%</strong>`;
+    if (diff < 0) return `較同業低 <strong style="color:var(--success)">${Math.abs(diff)}%</strong>`;
+    return `與同業持平`;
+  }
+
+  pg.innerHTML = `
+    <div class="score-card pressure">
+      <div class="score-label">國內政策監管壓力</div>
+      <div class="score-value">${pNat}%</div>
+      <div class="score-bar-wrap"><div class="score-bar" style="width:${pNat}%"></div></div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px">產業平均 ${pNatAvg}%・${diffText(pNatDiff, sampleCount)}</div>
+    </div>
+    <div class="score-card pressure">
+      <div class="score-label">國際供應鏈壓力</div>
+      <div class="score-value">${pSup}%</div>
+      <div class="score-bar-wrap"><div class="score-bar" style="width:${pSup}%"></div></div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px">產業平均 ${pSupAvg}%・${diffText(pSupDiff, sampleCount)}</div>
+    </div>
+  `;
+
+  // ── Matrix Chart ──
+  const totalPressure = Math.round((scores.pressureNational + scores.pressureSupply) / 2 * 100);
+  const avgPressure = Math.round((PRESSURE_AVG.national + PRESSURE_AVG.supply) / 2 * 100);
+  const totalReadiness = Math.round((scores.governance + scores.strategy + scores.targets + scores.process + scores.renewable + scores.circular) / 6 * 100);
+  const avgReadiness = Math.round((INDUSTRY_AVG.governance + INDUSTRY_AVG.strategy + INDUSTRY_AVG.targets + INDUSTRY_AVG.process + INDUSTRY_AVG.renewable + INDUSTRY_AVG.circular) / 6 * 100);
+
+  // Quadrant label for company
+  const qLabel = totalPressure >= 50 && totalReadiness >= 50 ? '高壓力・高準備'
+    : totalPressure >= 50 && totalReadiness < 50 ? '高壓力・低準備'
+    : totalPressure < 50 && totalReadiness >= 50 ? '低壓力・高準備'
+    : '低壓力・低準備';
+  document.getElementById('matrixLegend').innerHTML =
+    `🟠 貴公司　🟡 產業平均　⬤ 同業（${otherDots.length}家）　｜　貴公司落點：<strong>${qLabel}</strong>`;
+
+  const matrixDatasets = [
+    {
+      label: '貴公司',
+      data: [{ x: totalPressure, y: totalReadiness }],
+      backgroundColor: '#F98400',
+      borderColor: '#c86a00',
+      borderWidth: 2,
+      pointRadius: 11,
+      pointHoverRadius: 13,
+      pointStyle: 'circle',
+      order: 1,
+    },
+    {
+      label: '產業平均',
+      data: [{ x: avgPressure, y: avgReadiness }],
+      backgroundColor: '#FFBF23',
+      borderColor: '#d49e00',
+      borderWidth: 2,
+      pointRadius: 11,
+      pointStyle: 'circle',
+      order: 2,
+    }
+  ];
+
+  if (otherDots.length > 0) {
+    matrixDatasets.push({
+      label: `同業（${otherDots.length}家）`,
+      data: otherDots,
+      backgroundColor: 'rgba(100,100,100,0.35)',
+      borderColor: 'rgba(100,100,100,0.6)',
+      borderWidth: 1,
+      pointRadius: 7,
+      pointHoverRadius: 9,
+      pointStyle: 'circle',
+      order: 3,
+    });
+  }
+
+  new Chart(document.getElementById('matrixChart'), {
+    type: 'scatter',
+    data: { datasets: matrixDatasets },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          min: 0, max: 100,
+          title: { display: true, text: '外部壓力指數 →', font: { size: 12, family: 'Noto Sans TC' }, color: '#666' },
+          ticks: { font: { size: 11 } },
+          grid: { color: '#eeeeee' }
+        },
+        y: {
+          min: 0, max: 100,
+          title: {
+            display: true,
+            text: '因應準備度',
+            font: { size: 12, family: 'Noto Sans TC' },
+            color: '#666',
+          },
+          ticks: { font: { size: 11 } },
+          grid: { color: '#eeeeee' }
+        }
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Noto Sans TC', size: 12 }, usePointStyle: true } },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}：壓力 ${ctx.parsed.x}%・準備度 ${ctx.parsed.y}%`
+          }
+        },
+      },
+      animation: { duration: 800 }
+    },
+    plugins: [{
+      id: 'quadrantLines',
+      beforeDraw(chart) {
+        const { ctx, chartArea: { left, right, top, bottom, width, height } } = chart;
+        const midX = left + width / 2;
+        const midY = top + height / 2;
+        ctx.save();
+        ctx.strokeStyle = '#dddddd';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(midX, top); ctx.lineTo(midX, bottom); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(left, midY); ctx.lineTo(right, midY); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#cccccc';
+        ctx.font = '10px Noto Sans TC';
+        ctx.textAlign = 'center';
+        ctx.fillText('低壓力・高準備', left + width * 0.25, top + 14);
+        ctx.fillText('高壓力・高準備', left + width * 0.75, top + 14);
+        ctx.fillText('低壓力・低準備', left + width * 0.25, bottom - 6);
+        ctx.fillText('高壓力・低準備', left + width * 0.75, bottom - 6);
+        ctx.restore();
+      }
+    }]
+  });
+
+  // Radar chart
+  const dims = ['治理與承諾','策略與風險管理','指標與目標','製程與能效','再生能源','循環經濟'];
+  const myData = [
+    scores.governance, scores.strategy, scores.targets,
+    scores.process, scores.renewable, scores.circular
+  ].map(v => Math.round(v * 100));
+
+  const showAvg = true;
+  const avgData = [
+    INDUSTRY_AVG.governance, INDUSTRY_AVG.strategy, INDUSTRY_AVG.targets,
+    INDUSTRY_AVG.process, INDUSTRY_AVG.renewable, INDUSTRY_AVG.circular
+  ].map(v => Math.round(v * 100));
+
+  const notice = document.getElementById('industryNotice');
+  notice.style.display = 'block';
+  notice.innerHTML = `📊 產業平均資料來源：國內 <strong>${sampleCount}</strong> 家同業填答結果`;
+
+  const datasets = [{
+    label: '貴公司',
+    data: myData,
+    backgroundColor: 'rgba(255,191,35,0.15)',
+    borderColor: '#FFBF23',
+    borderWidth: 2,
+    pointBackgroundColor: '#FFBF23',
+    pointRadius: 5,
+  }, {
+    label: `產業平均（${sampleCount}家）`,
+    data: avgData,
+    backgroundColor: 'rgba(26,26,26,0.05)',
+    borderColor: '#888888',
+    borderWidth: 1.5,
+    borderDash: [5, 5],
+    pointBackgroundColor: '#888888',
+    pointRadius: 4,
+  }];
+
+  new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: { labels: dims, datasets },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { stepSize: 25, font: { size: 10 } },
+          pointLabels: { font: { size: 12, family: 'Noto Sans TC' }, color: '#1a3a5c' },
+          grid: { color: '#dde3ea' },
+          angleLines: { color: '#dde3ea' }
+        }
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Noto Sans TC', size: 12 } } }
+      }
+    }
+  });
+
+  // Advice
+  const adviceData = [
+    { dim: '治理與承諾', score: scores.governance, key: 'governance',
+      low: '貴公司在氣候治理方面仍處於起步階段。建議優先指定高階主管作為碳管理負責人，並在內部正式宣示氣候政策方向，以建立推動基礎。',
+      mid: '貴公司已建立基本治理架構，但參與外部倡議及與高層績效掛勾仍有提升空間。建議考慮加入產業倡議組織，並將減碳績效納入主管評核。',
+      high: '貴公司在氣候治理方面表現優異，已建立完整的高層督導機制與外部倡議參與。建議持續強化治理透明度並定期向利益相關人揭露進展。' },
+    { dim: '策略與風險管理', score: scores.strategy, key: 'strategy',
+      low: '貴公司在氣候風險管理方面仍待加強。建議從員工基礎培訓開始，逐步建立識別氣候風險的流程，並將相關考量納入日常經營決策。',
+      mid: '貴公司已有部分氣候風險管理機制，建議進一步完善情境分析流程，並考慮導入內部碳定價作為投資決策工具。',
+      high: '貴公司在策略與風險管理方面已相當成熟。建議持續優化氣候情境分析方法，並考慮對外揭露風險管理成果以提升品牌信任度。' },
+    { dim: '指標與目標', score: scores.targets, key: 'targets',
+      low: '貴公司尚未建立系統性的碳排放追蹤機制。建議優先完成範疇1及2的碳盤查，並設定初步的減量目標作為管理基準。',
+      mid: '貴公司已有基本的碳排放揭露，建議進一步取得第三方查證以提升數據可信度，並設定具科學依據的短中長期減量目標。',
+      high: '貴公司在碳排放揭露與目標設定方面表現優秀。建議持續追蹤目標達成進度，並考慮將範疇3重大排放源納入管理範疇。' },
+    { dim: '製程與能效', score: scores.process, key: 'process',
+      low: '貴公司在製程節能方面仍有較大提升空間。建議從成本效益最高的措施著手，如 LED 照明升級、空壓機效率改善等，可快速見效且回收期短。',
+      mid: '貴公司已推動部分製程節能措施，建議擴大範圍至製程設備智慧化及燃料替代，以進一步降低碳排及能源成本。',
+      high: '貴公司在製程節能方面已有相當成果。建議持續精進並考慮導入能源管理系統（EMS）進行更精準的用能監控與優化。' },
+    { dim: '再生能源', score: scores.renewable, key: 'renewable',
+      low: '貴公司在再生能源使用方面仍處於評估階段。建議優先評估屋頂太陽能自發自用的可行性，並了解綠電採購的選項與成本。',
+      mid: '貴公司已開始布局再生能源，建議加快推動綠電採購或自建發電，以回應供應鏈對於再生能源使用的要求。',
+      high: '貴公司在再生能源使用方面表現領先。建議持續提高再生能源占比，並考慮結合儲能設施以提升能源韌性。' },
+    { dim: '循環經濟與產品減碳', score: scores.circular, key: 'circular',
+      low: '貴公司在循環經濟與低碳產品方面仍有很大發展空間。建議從供應鏈低碳採購及物流路線優化著手，這些措施通常具有較高的成本效益。',
+      mid: '貴公司已開始推動部分低碳產品或供應鏈改善，建議進一步擴大再生材料使用比例，並系統性地與供應商推動共同減碳。',
+      high: '貴公司在循環經濟與產品減碳方面表現優秀。建議持續深化供應鏈合作，並考慮將低碳產品定位作為市場差異化競爭優勢。' },
+  ];
+
+  const adviceContainer = document.getElementById('adviceSection');
+  adviceContainer.innerHTML = adviceData.map((item, i) => {
+    const pct = Math.round(item.score * 100);
+    const avg = avgData[i];
+    const diff = pct - avg;
+    const level = pct < 33 ? 'low' : pct < 66 ? 'mid' : 'high';
+    const levelText = pct < 33 ? '待加強' : pct < 66 ? '發展中' : '良好';
+    const text = pct < 33 ? item.low : pct < 66 ? item.mid : item.high;
+    const compareText = diff > 0
+      ? `較國內 ${sampleCount} 家同業高 <strong>${diff}%</strong>`
+      : diff < 0
+      ? `較國內 ${sampleCount} 家同業低 <strong>${Math.abs(diff)}%</strong>`
+      : `與國內 ${sampleCount} 家同業持平`;
+    return `
+      <div class="advice-item">
+        <div class="advice-header" onclick="toggleAdvice(${i})">
+          <div class="advice-header-left">
+            <span class="advice-dim">${item.dim}</span>
+            <span class="advice-score-badge ${level}">${pct}% · ${levelText}</span>
+            <span style="font-size:12px;color:var(--text-muted)">${compareText}</span>
+          </div>
+          <span class="advice-toggle" id="toggle${i}">▼</span>
+        </div>
+        <div class="advice-body" id="advice${i}">${text}</div>
+      </div>`;
+  }).join('');
+
+  // Auto-open first item
+  setTimeout(() => toggleAdvice(0), 300);
+}
+
+function toggleAdvice(i) {
+  const body = document.getElementById('advice' + i);
+  const tog = document.getElementById('toggle' + i);
+  const isOpen = body.classList.toggle('open');
+  tog.classList.toggle('open', isOpen);
+}
+
+// 暴露給 HTML onclick 使用的函數
+window.toggleConsent = toggleConsent;
+window.startQuestionnaire = startQuestionnaire;
+window.nextSection = nextSection;
+window.prevSection = prevSection;
+window.selectRadio = selectRadio;
+window.toggleCheck = toggleCheck;
+window.toggleHint = toggleHint;
+window.toggleAdvice = toggleAdvice;
+window.validateEmail = validateEmail;
+window.checkDuplicate = checkDuplicate;
+
+}); // end window.onload
+</script>
+</body>
+</html>
