@@ -723,9 +723,10 @@ function toggleConsent() {
   document.getElementById('startBtn').disabled = !cb.checked;
 }
 
-function startQuestionnaire() {
+async function startQuestionnaire() {
   goScreen('screen-questionnaire');
   document.getElementById('progressWrap').style.display = 'block';
+  await loadWeights();
   renderSection(0);
 }
 
@@ -1279,9 +1280,36 @@ function scoreYNU(val, weights) {
   return weights.unclear || 0;
 }
 
-function scoreE(val) {
+// 全域權重變數（從 Sheets 載入）
+let W = null;
+
+async function loadWeights() {
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getWeights`);
+    const data = await res.json();
+    if (data.success) W = data.weights;
+  } catch(e) {
+    console.warn('權重載入失敗，使用預設值', e);
+  }
+}
+
+function scoreE(key, val) {
+  if (W && W.E && W.E[key]) {
+    return W.E[key][val] || 0;
+  }
+  // 預設值
   const map = { '大部分完成並持續精進': 5, '已規劃並執行中': 4, '評估規劃中': 3, '尚無規劃': 2, '不清楚': 0 };
   return map[val] || 0;
+}
+
+function getEMax(key) {
+  if (W && W.E && W.E[key]) return W.E[key].max || 5;
+  return 5;
+}
+
+function getBScore(code, val) {
+  if (W && W.B && W.B[code] && W.B[code][val] !== undefined) return W.B[code][val];
+  return 0;
 }
 
 function calculateScores() {
@@ -1290,73 +1318,104 @@ function calculateScores() {
 
   // ── Pressure: National Policy (B) ──
   let bScore = 0;
-  if (a.B1 && a.B1 !== '以上皆非' && a.B1 !== '不清楚') bScore += 0.4;
-  if (a.B2 && a.B2 !== '以上皆非' && a.B2 !== '不清楚') bScore += 0.4;
-  if (a.B3 === '是（用電契約達800kW以上）') bScore += 0.2;
-  scores.pressureNational = Math.min(bScore, 1);
+  const bMax = (W && W.B) ?
+    (Math.max(...Object.values(W.B.B1 || {B1:4})) +
+     Math.max(...Object.values(W.B.B2 || {B2:4})) +
+     Math.max(...Object.values(W.B.B3 || {B3:2}))) : 10;
+
+  bScore += getBScore('B1', a.B1 || '');
+  bScore += getBScore('B2', a.B2 || '');
+  bScore += getBScore('B3', a.B3 || '');
+  scores.pressureNational = Math.min(bScore / bMax, 1);
 
   // ── Pressure: Supply Chain (C) ──
   const c1 = a.C1 || [];
   let cScore = 0;
-  if (c1.includes('參加教育訓練（如碳盤查、碳足跡、科學減量目標等）')) cScore += 1/18;
-  if (c1.includes('提供碳排數據（包含碳盤查/足跡、廠內用能數據）')) cScore += 1/18;
-  if (c1.includes('關切工廠未來減碳計畫（如產品製程改善、使用再生能源、工廠能效提升等）')) cScore += 2/18;
-  if (c1.includes('定期回報進度／填寫問卷（如永續問卷、CDP）')) cScore += 3/18;
-  if (c1.includes('制定減量目標（如科學減量目標 SBT）')) cScore += 3/18;
-  if (c1.includes('要求使用再生能源')) cScore += 4/18;
+  const c1Map = {
+    '參加教育訓練（如碳盤查、碳足跡、科學減量目標等）': (W && W.C1 && W.C1['C1_教育訓練']) || 1,
+    '提供碳排數據（包含碳盤查/足跡、廠內用能數據）': (W && W.C1 && W.C1['C1_碳數據']) || 1,
+    '關切工廠未來減碳計畫（如產品製程改善、使用再生能源、工廠能效提升等）': (W && W.C1 && W.C1['C1_減碳計畫']) || 2,
+    '定期回報進度／填寫問卷（如永續問卷、CDP）': (W && W.C1 && W.C1['C1_填寫問卷']) || 3,
+    '制定減量目標（如科學減量目標 SBT）': (W && W.C1 && W.C1['C1_制定目標']) || 3,
+    '要求使用再生能源': (W && W.C1 && W.C1['C1_再生能源']) || 4,
+  };
+  const c1Max = Object.values(c1Map).reduce((s, v) => s + v, 0);
+  Object.entries(c1Map).forEach(([key, val]) => {
+    if (c1.includes(key)) cScore += val;
+  });
+
   // CBAM
   const cbam = a.C2 || '';
-  if (cbam.includes('超過50%')) cScore += 4/18;
-  else if (cbam.includes('20-50%') || cbam.includes('20–50%')) cScore += 3/18;
-  else if (cbam.includes('低於20%')) cScore += 2/18;
-  else if (cbam.includes('有外銷歐盟')) cScore += 1/18;
-  scores.pressureSupply = Math.min(cScore, 1);
+  const c2Map = W && W.C2 ? W.C2 : {
+    '超過50%銷貨收入需申報': 4,
+    '約20–50%銷貨收入需申報': 3,
+    '低於20%銷貨收入需申報': 2,
+    '有外銷歐盟，但尚無須申報': 1,
+  };
+  const c2Max = Math.max(...Object.values(c2Map), 4);
+  const c2Score = c2Map[cbam] || 0;
+  const cMax = c1Max + c2Max;
+  scores.pressureSupply = Math.min((cScore + c2Score) / cMax, 1);
 
   // ── Governance (D1,D2,D3,D13,D5,D14,D20) ──
-  let gov = 0, govMax = 31;
-  gov += a.D1 === '是' ? 2 : 0;
-  gov += a.D2 === '是' ? 3 : 0;
-  gov += a.D3 === '是' ? 3 : 0;
-  gov += a.D13 === '是' ? 5 : 0;
+  const D = W && W.D ? W.D : {};
+  const d = (key) => D[key] || 0;
+  let gov = 0;
+  const govMax = (d('D1')||2) + (d('D2')||3) + (d('D3')||3) + (d('D13')||5) + (d('D5')||6) + (d('D14')||6) + (d('D20')||6);
+  gov += a.D1 === '是' ? (d('D1')||2) : 0;
+  gov += a.D2 === '是' ? (d('D2')||3) : 0;
+  gov += a.D3 === '是' ? (d('D3')||3) : 0;
+  gov += a.D13 === '是' ? (d('D13')||5) : 0;
   const d5 = a.D5 || [];
-  if (d5.includes('RE100 / TRE100') || d5.includes('SBTi')) gov += 6;
-  else if (d5.length > 0 && !d5.includes('否') && !d5.includes('不清楚')) gov += 3;
-  gov += a.D14 === '是' ? 6 : 0;
-  gov += a.D20 === '是' ? 6 : 0;
-  scores.governance = gov / govMax;
+  if (d5.includes('RE100 / TRE100') || d5.includes('SBTi')) gov += (d('D5')||6);
+  else if (d5.length > 0 && !d5.includes('否') && !d5.includes('不清楚')) gov += Math.round((d('D5')||6) / 2);
+  gov += a.D14 === '是' ? (d('D14')||6) : 0;
+  gov += a.D20 === '是' ? (d('D20')||6) : 0;
+  scores.governance = govMax > 0 ? gov / govMax : 0;
 
   // ── Strategy & Risk (D4,D15,D16,D17,D18,D19) ──
-  let sr = 0, srMax = 29;
-  sr += a.D17 === '是' ? 1 : 0;
-  sr += a.D4 === '是' ? 5 : 0;
-  sr += a.D15 === '是' ? 5 : 0;
-  sr += a.D16 === '是' ? 6 : 0;
-  sr += a.D18 === '是' ? 6 : 0;
-  if (a.D19 && a.D19 !== '以上皆無' && a.D19 !== '不清楚') sr += 6;
-  scores.strategy = sr / srMax;
+  let sr = 0;
+  const srMax = (d('D17')||1) + (d('D4')||5) + (d('D15')||5) + (d('D16')||6) + (d('D18')||6) + (d('D19')||6);
+  sr += a.D17 === '是' ? (d('D17')||1) : 0;
+  sr += a.D4 === '是' ? (d('D4')||5) : 0;
+  sr += a.D15 === '是' ? (d('D15')||5) : 0;
+  sr += a.D16 === '是' ? (d('D16')||6) : 0;
+  sr += a.D18 === '是' ? (d('D18')||6) : 0;
+  if (a.D19 && a.D19 !== '以上皆無' && a.D19 !== '不清楚') sr += (d('D19')||6);
+  scores.strategy = srMax > 0 ? sr / srMax : 0;
 
   // ── Targets (D6,D7,D8,D9,D10,D11,D12) ──
-  let mt = 0, mtMax = 34;
-  mt += a.D6 === '是' ? 4 : 0;
-  mt += a.D7 === '是' ? 5 : 0;
-  mt += a.D8 === '是' ? 5 : 0;
-  mt += a.D9 === '是' ? 5 : 0;
-  mt += a.D10 === '是' ? 4 : 0;
-  mt += a.D11 === '是' ? 5 : 0;
-  mt += a.D12 === '是' ? 6 : 0;
-  scores.targets = mt / mtMax;
+  let mt = 0;
+  const mtMax = (d('D6')||4) + (d('D7')||5) + (d('D8')||5) + (d('D9')||5) + (d('D10')||4) + (d('D11')||5) + (d('D12')||6);
+  mt += a.D6 === '是' ? (d('D6')||4) : 0;
+  mt += a.D7 === '是' ? (d('D7')||5) : 0;
+  mt += a.D8 === '是' ? (d('D8')||5) : 0;
+  mt += a.D9 === '是' ? (d('D9')||5) : 0;
+  mt += a.D10 === '是' ? (d('D10')||4) : 0;
+  mt += a.D11 === '是' ? (d('D11')||5) : 0;
+  mt += a.D12 === '是' ? (d('D12')||6) : 0;
+  scores.targets = mtMax > 0 ? mt / mtMax : 0;
 
-  // ── Process & Energy (E1_1~E1_4) ── max = 5*4 = 20
+  // ── Process & Energy (E1_1~E1_4) ──
   const eKeys1 = ['E1_1','E1_2','E1_3','E1_4'];
-  scores.process = eKeys1.reduce((s,k) => s + scoreE(a[k]), 0) / 20;
+  const e1Total = eKeys1.reduce((s,k) => s + scoreE(k, a[k]), 0);
+  const e1Max = eKeys1.reduce((s,k) => s + getEMax(k), 0);
+  scores.process = e1Max > 0 ? e1Total / e1Max : 0;
 
-  // ── Renewable (E2_1~E2_3) ── max = 5*3 = 15
+  // ── Renewable (E2_1~E2_3) ──
   const eKeys2 = ['E2_1','E2_2','E2_3'];
-  scores.renewable = eKeys2.reduce((s,k) => s + scoreE(a[k]), 0) / 15;
+  const e2Total = eKeys2.reduce((s,k) => s + scoreE(k, a[k]), 0);
+  const e2Max = eKeys2.reduce((s,k) => s + getEMax(k), 0);
+  scores.renewable = e2Max > 0 ? e2Total / e2Max : 0;
 
-  // ── Circular (E3_1~E3_3) ── max = 5*3 = 15
+  // ── Circular (E3_1~E3_3) ──
   const eKeys3 = ['E3_1','E3_2','E3_3'];
-  scores.circular = eKeys3.reduce((s,k) => s + scoreE(a[k]), 0) / 15;
+  const e3Total = eKeys3.reduce((s,k) => s + scoreE(k, a[k]), 0);
+  const e3Max = eKeys3.reduce((s,k) => s + getEMax(k), 0);
+  scores.circular = e3Max > 0 ? e3Total / e3Max : 0;
+
+  return scores;
+}
 
   return scores;
 }
@@ -1364,7 +1423,15 @@ function calculateScores() {
 // ═══════════════════════════════════════════
 // SUBMIT & RENDER RESULT
 // ═══════════════════════════════════════════
+let isSubmitting = false;
+
 async function submitQuestionnaire() {
+  if (isSubmitting) return;
+  isSubmitting = true;
+
+  const submitBtn = document.getElementById('nextBtn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '提交中...'; }
+
   const scores = calculateScores();
   const timestamp = new Date().toLocaleString('zh-TW');
 
@@ -1395,15 +1462,10 @@ async function submitQuestionnaire() {
   let otherDots = [];
   let sampleCount = 1;
   try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getDots`);
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getDots&taxid=${encodeURIComponent(answers.taxid || '')}`);
     const data = await res.json();
     if (data.success) {
-      const totalPressure = Math.round((scores.pressureNational + scores.pressureSupply) / 2 * 100);
-      const totalReadiness = Math.round((scores.governance + scores.strategy + scores.targets + scores.process + scores.renewable + scores.circular) / 6 * 100);
-      // 排除自己的點（同統編）
-      otherDots = data.dots.filter(d =>
-        !(Math.abs(d.x - totalPressure) < 1 && Math.abs(d.y - totalReadiness) < 1)
-      );
+      otherDots = data.dots;
       sampleCount = data.count || 1;
     }
   } catch(e) { console.warn('落點資料讀取失敗', e); }
