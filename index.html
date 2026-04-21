@@ -698,12 +698,19 @@ window.checkInvite = async function() {
   btn.disabled = false;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('inviteBtn').addEventListener('click', checkInvite);
-  document.getElementById('inviteInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') checkInvite();
-  });
-});
+// 確保按鈕事件綁定（相容 iframe 環境）
+function bindInviteEvents() {
+  const btn = document.getElementById('inviteBtn');
+  const input = document.getElementById('inviteInput');
+  if (btn) btn.onclick = window.checkInvite;
+  if (input) input.onkeydown = e => { if (e.key === 'Enter') window.checkInvite(); };
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bindInviteEvents);
+} else {
+  bindInviteEvents();
+}
 
 // ═══════════════════════════════════════════
 // PRIVACY
