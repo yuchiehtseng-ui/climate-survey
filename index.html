@@ -1399,41 +1399,42 @@ function calculateScores() {
 
   // ── Governance (D1,D2,D3,D13,D5,D14,D20) ──
   const D = W && W.D ? W.D : {};
-  const d = (key) => D[key] || 0;
+  const d = (key) => (D[key] && D[key].max !== undefined) ? D[key].max : (D[key] || 0);
+  const dPriority = (key) => (D[key] && D[key].priority !== undefined) ? D[key].priority : 99;
   let gov = 0;
   const govMax = (d('D1')||2) + (d('D2')||3) + (d('D3')||3) + (d('D13')||5) + (d('D5')||6) + (d('D14')||6) + (d('D20')||6);
-  gov += a.D1 === '是' ? (d('D1')||2) : 0;
-  gov += a.D2 === '是' ? (d('D2')||3) : 0;
-  gov += a.D3 === '是' ? (d('D3')||3) : 0;
-  gov += a.D13 === '是' ? (d('D13')||5) : 0;
+  gov += a.D1 === '是' ? (d('D1')||2) : a.D1 === '否' ? 1 : 0;
+  gov += a.D2 === '是' ? (d('D2')||3) : a.D2 === '否' ? 1 : 0;
+  gov += a.D3 === '是' ? (d('D3')||3) : a.D3 === '否' ? 1 : 0;
+  gov += a.D13 === '是' ? (d('D13')||5) : a.D13 === '否' ? 1 : 0;
   const d5 = a.D5 || [];
   if (d5.includes('RE100 / TRE100') || d5.includes('SBTi')) gov += (d('D5')||6);
   else if (d5.length > 0 && !d5.includes('否') && !d5.includes('不清楚')) gov += Math.round((d('D5')||6) / 2);
-  gov += a.D14 === '是' ? (d('D14')||6) : 0;
-  gov += a.D20 === '是' ? (d('D20')||6) : 0;
+  gov += a.D14 === '是' ? (d('D14')||6) : a.D14 === '否' ? 1 : 0;
+  gov += a.D20 === '是' ? (d('D20')||6) : a.D20 === '否' ? 1 : 0;
   scores.governance = govMax > 0 ? gov / govMax : 0;
 
   // ── Strategy & Risk (D4,D15,D16,D17,D18,D19) ──
   let sr = 0;
   const srMax = (d('D17')||1) + (d('D4')||5) + (d('D15')||5) + (d('D16')||6) + (d('D18')||6) + (d('D19')||6);
-  sr += a.D17 === '是' ? (d('D17')||1) : 0;
-  sr += a.D4 === '是' ? (d('D4')||5) : 0;
-  sr += a.D15 === '是' ? (d('D15')||5) : 0;
-  sr += a.D16 === '是' ? (d('D16')||6) : 0;
-  sr += a.D18 === '是' ? (d('D18')||6) : 0;
+  sr += a.D17 === '是' ? (d('D17')||1) : a.D17 === '否' ? 1 : 0;
+  sr += a.D4 === '是' ? (d('D4')||5) : a.D4 === '否' ? 1 : 0;
+  sr += a.D15 === '是' ? (d('D15')||5) : a.D15 === '否' ? 1 : 0;
+  sr += a.D16 === '是' ? (d('D16')||6) : a.D16 === '否' ? 1 : 0;
+  sr += a.D18 === '是' ? (d('D18')||6) : a.D18 === '否' ? 1 : 0;
   if (a.D19 && a.D19 !== '以上皆無' && a.D19 !== '不清楚') sr += (d('D19')||6);
   scores.strategy = srMax > 0 ? sr / srMax : 0;
 
   // ── Targets (D6,D7,D8,D9,D10,D11,D12) ──
   let mt = 0;
   const mtMax = (d('D6')||4) + (d('D7')||5) + (d('D8')||5) + (d('D9')||5) + (d('D10')||4) + (d('D11')||5) + (d('D12')||6);
-  mt += a.D6 === '是' ? (d('D6')||4) : 0;
-  mt += a.D7 === '是' ? (d('D7')||5) : 0;
-  mt += a.D8 === '是' ? (d('D8')||5) : 0;
-  mt += a.D9 === '是' ? (d('D9')||5) : 0;
-  mt += a.D10 === '是' ? (d('D10')||4) : 0;
-  mt += a.D11 === '是' ? (d('D11')||5) : 0;
-  mt += a.D12 === '是' ? (d('D12')||6) : 0;
+  mt += a.D6 === '是' ? (d('D6')||4) : a.D6 === '否' ? 1 : 0;
+  mt += a.D7 === '是' ? (d('D7')||5) : a.D7 === '否' ? 1 : 0;
+  mt += a.D8 === '是' ? (d('D8')||5) : a.D8 === '否' ? 1 : 0;
+  mt += a.D9 === '是' ? (d('D9')||5) : a.D9 === '否' ? 1 : 0;
+  mt += a.D10 === '是' ? (d('D10')||4) : a.D10 === '否' ? 1 : 0;
+  mt += a.D11 === '是' ? (d('D11')||5) : a.D11 === '否' ? 1 : 0;
+  mt += a.D12 === '是' ? (d('D12')||6) : a.D12 === '否' ? 1 : 0;
   scores.targets = mtMax > 0 ? mt / mtMax : 0;
 
   // ── Process & Energy (E1_1~E1_4) ──
@@ -1782,6 +1783,53 @@ function renderResult(scores, timestamp, otherDots = [], sampleCount = 1) {
       : diff < 0
       ? `較國內 ${sampleCount} 家同業低 <strong>${Math.abs(diff)}%</strong>`
       : `與國內 ${sampleCount} 家同業持平`;
+
+    // ── 優先推薦行動 ──
+    const dimQMap = {
+      'governance':  { D: ['D1','D2','D3','D13','D14','D20'], E: [] },
+      'strategy':    { D: ['D4','D15','D16','D17','D18','D19'], E: [] },
+      'targets':     { D: ['D6','D7','D8','D9','D10','D11','D12'], E: [] },
+      'process':     { D: [], E: ['E1_1','E1_2','E1_3','E1_4'] },
+      'renewable':   { D: [], E: ['E2_1','E2_2','E2_3'] },
+      'circular':    { D: [], E: ['E3_1','E3_2','E3_3'] }
+    };
+    const dLabelMap = {
+      D1:'感受氣候議題影響營運',D2:'正式評估氣候風險與商機',D3:'訂定正式氣候政策或承諾',
+      D4:'投入資源回應碳管理政策',D6:'揭露範疇1及2排放數據',D7:'取得第三方查證',
+      D8:'計算範疇3排放數據',D9:'揭露重大範疇3細節',D10:'制定減量目標',
+      D11:'制定短期減量目標',D12:'制定長期減量目標',D13:'高階主管督導碳相關工作',
+      D14:'將減碳績效納入主管KPI',D15:'建立定期討論碳風險的機制',
+      D16:'將碳風險機會納入決策',D17:'安排員工碳排教育訓練',
+      D18:'執行氣候情境分析',D19:'導入內部碳定價',D20:'關注公協會碳共識'
+    };
+    const eLabelMap = {
+      E1_1:'公用設備節能',E1_2:'燃燒設備燃料替代',E1_3:'製程設備節能',E1_4:'逸散性減排',
+      E2_1:'再生能源自發自用',E2_2:'投資儲能設施',E2_3:'綠電採購',
+      E3_1:'推動低碳產品／服務',E3_2:'進出貨物流優化',E3_3:'供應鏈減碳'
+    };
+    const qs = dimQMap[item.key] || { D: [], E: [] };
+    const recs = [];
+    const WD = W && W.D ? W.D : {};
+    const WE = W && W.E ? W.E : {};
+    qs.D.forEach(function(code) {
+      const val = answers[code] || '';
+      const pri = (WD[code] && WD[code].priority) ? WD[code].priority : 99;
+      if (val === '否') recs.push({ label: dLabelMap[code], pri });
+      else if (val === '不清楚') recs.push({ label: dLabelMap[code], pri: pri + 0.5 });
+    });
+    qs.E.forEach(function(code) {
+      const val = answers[code] || '';
+      const pri = (WE[code] && WE[code].priority) ? WE[code].priority : 99;
+      if (val === '尚無規劃') recs.push({ label: eLabelMap[code], pri });
+      else if (val === '評估規劃中') recs.push({ label: eLabelMap[code], pri: pri + 0.5 });
+      else if (val === '不清楚') recs.push({ label: eLabelMap[code], pri: pri + 1 });
+    });
+    recs.sort((a,b) => a.pri - b.pri);
+    const top3 = recs.slice(0,3).map(r => r.label);
+    const recHtml = top3.length > 0
+      ? `<div style="margin-top:10px;font-size:12px;color:var(--text-muted)"><strong>【優先推薦行動】</strong>${top3.join('、')}</div>`
+      : '';
+
     return `
       <div class="advice-item">
         <div class="advice-header" onclick="toggleAdvice(${i})">
@@ -1792,7 +1840,7 @@ function renderResult(scores, timestamp, otherDots = [], sampleCount = 1) {
           </div>
           <span class="advice-toggle" id="toggle${i}">▼</span>
         </div>
-        <div class="advice-body" id="advice${i}">${text}</div>
+        <div class="advice-body" id="advice${i}">${text}${recHtml}</div>
       </div>`;
   }).join('');
 
