@@ -1291,14 +1291,15 @@ function validateSection() {
       alert('E-mail 格式不正確，請確認是否包含 @。');
       ok = false;
     } else {
+      // 離開第0頁時，強制從 DOM 存入所有聯絡欄位到 answers
       answers['company'] = company.value.trim();
       answers['taxid'] = taxid.value.trim();
       answers['contact_name'] = cname.value.trim();
       const title = document.querySelector('input[name="contact_title"]');
       const phone = document.querySelector('input[name="contact_phone"]');
-      if (title) answers['contact_title'] = title.value.trim();
-      if (phone) answers['contact_phone'] = phone.value.trim();
-      if (email) answers['contact_email'] = email.value.trim();
+      answers['contact_title'] = title ? title.value.trim() : (answers['contact_title'] || '');
+      answers['contact_phone'] = phone ? phone.value.trim() : (answers['contact_phone'] || '');
+      answers['contact_email'] = email ? email.value.trim() : (answers['contact_email'] || '');
     }
   }
 
@@ -1475,15 +1476,7 @@ async function submitQuestionnaire() {
 
   // 送資料到 Google Sheets
   try {
-    // 送資料前，確保從 DOM 重新讀取所有聯絡欄位（防止 answers 物件漏存）
-    const titleEl = document.querySelector('input[name="contact_title"]');
-    const phoneEl = document.querySelector('input[name="contact_phone"]');
-    const emailEl = document.querySelector('input[name="contact_email"]');
-    const taxidEl = document.querySelector('input[name="taxid"]');
-    if (titleEl) answers['contact_title'] = titleEl.value.trim();
-    if (phoneEl) answers['contact_phone'] = phoneEl.value.trim();
-    if (emailEl) answers['contact_email'] = emailEl.value.trim();
-    if (taxidEl) answers['taxid'] = taxidEl.value.trim();
+    // 聯絡資料已在離開第0頁時存入 answers，這裡不需要再從 DOM 讀取
 
     const payload = JSON.stringify({
       action: 'submit',
