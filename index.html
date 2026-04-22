@@ -728,7 +728,7 @@ function toggleConsent() {
 async function startQuestionnaire() {
   goScreen('screen-questionnaire');
   document.getElementById('progressWrap').style.display = 'block';
-  await loadWeights();
+  loadWeights(); // 背景載入，不 await，不阻塞畫面切換
   renderSection(0);
 }
 
@@ -1218,7 +1218,7 @@ function restoreAnswers(idx) {
 // ═══════════════════════════════════════════
 // NAV
 // ═══════════════════════════════════════════
-function nextSection() {
+async function nextSection() {
   if (!validateSection()) return;
 
   let next = currentSection + 1;
@@ -1229,6 +1229,16 @@ function nextSection() {
   }
 
   if (next < SECTIONS.length) {
+    // 如果從第0頁往後走且權重還沒載好（極少發生），短暫等待
+    if (next >= 1 && !weightsReady) {
+      const btn = document.getElementById('nextBtn');
+      const origText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '載入中...';
+      await loadWeights();
+      btn.disabled = false;
+      btn.textContent = origText;
+    }
     renderSection(next);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
@@ -1311,6 +1321,9 @@ function scoreYNU(val, weights) {
 // 全域權重變數（從 Sheets 載入）
 let W = null;
 
+let W = null;
+let weightsReady = false;
+
 async function loadWeights() {
   try {
     const res = await fetch(`${APPS_SCRIPT_URL}?action=getWeights`);
@@ -1319,6 +1332,7 @@ async function loadWeights() {
   } catch(e) {
     console.warn('權重載入失敗，使用預設值', e);
   }
+  weightsReady = true;
 }
 
 function scoreE(key, val) {
