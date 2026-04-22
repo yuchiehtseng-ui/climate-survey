@@ -6,25 +6,7 @@
 <title>企業氣候韌性評估 | 中華氣候高峰論壇</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// ── Event delegation for answer inputs ──
-document.addEventListener('input', function(e) {
-  const el = e.target;
-  const key = el.getAttribute('data-answer-key');
-  if (key) {
-    window.answers[key] = el.value;
-    answers[key] = el.value;
-  }
-  if (el.getAttribute('data-validate-email')) {
-    validateEmail(el);
-  }
-  if (el.getAttribute('data-check-duplicate')) {
-    window.answers[key] = el.value;
-    answers[key] = el.value;
-    checkDuplicate(el.value);
-  }
-});
-</script>
+<!-- 移除重複的頂層 input 監聽器，統一在 window.onload 內處理 -->
 <style>
   :root {
     --primary: #1a1a1a;
@@ -838,6 +820,24 @@ function toggleHint(id) {
 
 // ─── Duplicate check ───
 let dupTimer = null;
+function validateTaxid(input) {
+  answers['taxid'] = input.value;
+  const errEl = document.getElementById('taxidError');
+  if (!errEl) return;
+  if (input.value && !/^\d{0,8}$/.test(input.value)) {
+    // 過濾非數字
+    input.value = input.value.replace(/\D/g, '').slice(0, 8);
+    answers['taxid'] = input.value;
+  }
+  if (input.value.length > 0 && input.value.length < 8) {
+    errEl.style.display = 'block';
+    input.style.borderColor = 'var(--warning)';
+  } else {
+    errEl.style.display = 'none';
+    input.style.borderColor = '';
+  }
+}
+
 async function checkDuplicate(taxid) {
   const notice = document.getElementById('duplicateNotice');
   if (!notice) return;
@@ -873,7 +873,8 @@ function renderBasic() {
       <div class="question-label"><span class="question-num">1</span><span class="question-text">企業基本資料 <span style="color:var(--warning);font-size:12px">*必填</span></span></div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;margin-left:36px">
         <input type="text" class="text-input" name="company" placeholder="企業名稱" data-answer-key="company">
-        <input type="text" class="text-input" name="taxid" placeholder="統一編號" maxlength="8" data-answer-key="taxid">
+        <input type="text" class="text-input" name="taxid" placeholder="統一編號（8碼數字）" maxlength="8" pattern="[0-9]{8}" inputmode="numeric" data-answer-key="taxid">
+        <div id="taxidError" style="display:none;font-size:12px;color:var(--warning);margin-top:-4px">統一編號須為 8 碼數字</div>
         <div id="duplicateNotice" style="display:none;font-size:13px;color:#c0622a;background:#fff8f0;border:1px solid #f0c090;border-radius:6px;padding:10px 14px;margin-top:6px;line-height:1.6">
           ⚠️ 提醒：貴公司已完成問卷填寫，本次重新填答後將更新並覆蓋前次資料，繼續填寫即表示同意。
         </div>
@@ -886,7 +887,7 @@ function renderBasic() {
         <input type="text" class="text-input" name="contact_name" placeholder="姓名 *" data-answer-key="contact_name">
         <input type="text" class="text-input" name="contact_title" placeholder="職稱" data-answer-key="contact_title">
         <input type="tel" class="text-input" name="contact_phone" placeholder="電話" data-answer-key="contact_phone">
-        <input type="email" class="text-input" name="contact_email" id="emailInput" placeholder="E-mail（需包含 @）" data-validate-email="true">
+        <input type="email" class="text-input" name="contact_email" id="emailInput" placeholder="E-mail（需包含 @）" data-validate-email="true" data-answer-key="contact_email">
         <div id="emailError" style="display:none;font-size:12px;color:var(--warning);margin-top:-4px">請輸入有效的 E-mail 格式（需包含 @）</div>
       </div>
     </div>
@@ -1273,6 +1274,9 @@ function validateSection() {
     if (!company?.value.trim() || !taxid?.value.trim() || !cname?.value.trim()) {
       alert('請填寫企業名稱、統一編號及聯絡人姓名。');
       ok = false;
+    } else if (!/^\d{8}$/.test(taxid.value.trim())) {
+      alert('統一編號須為 8 碼數字，請確認填寫是否正確。');
+      ok = false;
     } else if (email?.value && !email.value.includes('@')) {
       alert('E-mail 格式不正確，請確認是否包含 @。');
       ok = false;
@@ -1458,6 +1462,16 @@ async function submitQuestionnaire() {
 
   // 送資料到 Google Sheets
   try {
+    // 送資料前，確保從 DOM 重新讀取所有聯絡欄位（防止 answers 物件漏存）
+    const titleEl = document.querySelector('input[name="contact_title"]');
+    const phoneEl = document.querySelector('input[name="contact_phone"]');
+    const emailEl = document.querySelector('input[name="contact_email"]');
+    const taxidEl = document.querySelector('input[name="taxid"]');
+    if (titleEl) answers['contact_title'] = titleEl.value.trim();
+    if (phoneEl) answers['contact_phone'] = phoneEl.value.trim();
+    if (emailEl) answers['contact_email'] = emailEl.value.trim();
+    if (taxidEl) answers['taxid'] = taxidEl.value.trim();
+
     const payload = JSON.stringify({
       action: 'submit',
       inviteCode: currentInviteCode,
@@ -1476,19 +1490,22 @@ async function submitQuestionnaire() {
       timestamp
     });
 
-    // 方法1：sendBeacon（最佳）
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon(APPS_SCRIPT_URL, new Blob([payload], {type: 'text/plain'}));
-    } else {
-      // 方法2：no-cors POST（備援）
-      fetch(APPS_SCRIPT_URL, {
+    // 使用 fetch POST（比 sendBeacon 更可靠，Apps Script 可完整解析 JSON）
+    try {
+      await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
         body: payload
       });
+    } catch(fetchErr) {
+      // 備援：sendBeacon
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(APPS_SCRIPT_URL, new Blob([payload], {type: 'text/plain'}));
+      }
     }
     // 等待 Apps Script 處理
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 2500));
   } catch(e) { console.warn('資料儲存失敗', e); }
 
   // 取得真實落點資料
@@ -1787,7 +1804,7 @@ document.addEventListener('input', function(e) {
   answers[name] = el.value;
 
   // Special handlers
-  if (name === 'taxid') checkDuplicate(el.value);
+  if (name === 'taxid') { validateTaxid(el); checkDuplicate(el.value); }
   if (name === 'contact_email') validateEmail(el);
 });
 
@@ -1820,27 +1837,10 @@ window.toggleCheck = toggleCheck;
 window.toggleHint = toggleHint;
 window.toggleAdvice = toggleAdvice;
 window.validateEmail = validateEmail;
+window.validateTaxid = validateTaxid;
 window.checkDuplicate = checkDuplicate;
 
 }); // end window.onload
-
-// ── Event delegation for answer inputs ──
-document.addEventListener('input', function(e) {
-  const el = e.target;
-  const key = el.getAttribute('data-answer-key');
-  if (key) {
-    window.answers[key] = el.value;
-    answers[key] = el.value;
-  }
-  if (el.getAttribute('data-validate-email')) {
-    validateEmail(el);
-  }
-  if (el.getAttribute('data-check-duplicate')) {
-    window.answers[key] = el.value;
-    answers[key] = el.value;
-    checkDuplicate(el.value);
-  }
-});
 
 </script>
 </body>
